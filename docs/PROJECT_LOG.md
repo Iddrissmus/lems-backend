@@ -1,11 +1,11 @@
 # LEMS SCNMTC Backend - Project Log
 
 ## Current state
-- Phase: 1 - Foundation, step 1 (skeleton) built, waiting for owner review/commit
-- Branch: `phase-1/skeleton` (branched from `chore/project-setup`)
-- Done so far: project brief, gitignore, log, Laravel 13 skeleton with Pest, Larastan, Pint, `composer ci`, pre-push hook, health test
-- Next: step 2 - error envelope `{message, errors, code}` and readiness endpoint
-- Waiting on owner: review and commit step 1; D1 final answer; Redis decision
+- Phase: 1 - Foundation, step 2 (errors + readiness) built, waiting for owner review/commit
+- Branch: `phase-1/errors-health` (from `main`)
+- Done so far: step 1 skeleton (merged); step 2 error envelope and `/api/v1/ready`
+- Next: step 3 - identity (users, Sanctum, login/logout/me, password reset, invitations)
+- Waiting on owner: review and commit step 2; D1 final answer (needed before step 3); Redis decision
 
 ## Decisions (D1-D7 from setup.md)
 | # | Decision | Status | Answer | ADR |
@@ -33,3 +33,11 @@
 **Decided:** Laravel 13 chosen over the brief's 11/12 (newest, longest support; owner approved). No docker-compose for now since MySQL comes from XAMPP. Cache, queue and session use database drivers; `REDIS_CLIENT=predis` is set but Predis is not installed yet. App timezone stays UTC; Africa/Accra conversion is left to display logic.
 **Needs owner:** review and commit; confirm D1 when known.
 **Next:** step 2 - error handling envelope and readiness endpoint.
+
+### 2026-11-18 - Phase 1 step 2: error envelope and readiness
+**Branch:** `phase-1/errors-health` | **Phase:** 1 - Foundation
+**Done:** every API error now returns `{message, errors, code}` (`app/Support/Api/ErrorResponder.php`, registered in `bootstrap/app.php`). Codes: `validation_failed` 422, `unauthenticated` 401, `forbidden` 403, `not_found` 404, `method_not_allowed` 405, `conflict` 409, `too_many_requests` 429 (keeps Retry-After), `server_error` 500+. `errors` is always an object. Unexpected errors never leak internals unless `APP_DEBUG` is on, and are still logged. Added `GET /api/v1/ready` (database and cache probe, 200 or 503) via `ReadinessController` and `ReadinessCheck`; liveness stays at `/up`. 14 Pest tests pass.
+**Decided:** only 409 and 422 keep application-written messages; other HTTP errors use fixed messages so framework wording does not leak. Readiness response lists check names with ok/fail only, details go to the log.
+**Needs owner:** review and commit. Share the error format with the frontend team.
+**Next:** step 3 - identity. Needs D1 (bearer tokens vs cookies) settled first.
+

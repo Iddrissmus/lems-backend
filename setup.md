@@ -1,6 +1,6 @@
 # LEMS SCNMTC Backend — Project Brief for Claude Code
 
-> STATUS: DRAFT v0.2 — awaiting owner (Iddriss) approval. Items marked **[ASSUMPTION]** or listed under "Open decisions" must be confirmed before they are built.
+> STATUS: Final — awaiting owner (Iddriss) approval. Items marked **[ASSUMPTION]** or listed under "Open decisions" must be confirmed before they are built.
 
 ## 1. What we are building
 

@@ -9,12 +9,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\InviteUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Endpoint;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
+#[Group('Users', weight: 20)]
 class UserInvitationController extends Controller
 {
+    #[Endpoint(title: 'Invite a user', description: 'Requires permission users.invite. Creates the account in status invited, assigns the roles and emails a 72 hour link. Only super_admin can invite someone as super_admin. 409 if the email already has an active account.')]
     public function store(InviteUserRequest $request, InviteUser $inviteUser): JsonResponse
     {
         $roles = $request->roles();
@@ -36,6 +40,7 @@ class UserInvitationController extends Controller
             ->setStatusCode(201);
     }
 
+    #[Endpoint(title: 'Re-send an invitation', description: 'Requires permission users.invite. Only for accounts that have not accepted yet; the previous link stops working.')]
     public function resend(Request $request, User $user, InviteUser $inviteUser): JsonResponse
     {
         $roles = $user->getRoleNames()->all();

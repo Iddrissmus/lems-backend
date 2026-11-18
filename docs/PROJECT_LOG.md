@@ -1,11 +1,11 @@
 # LEMS SCNMTC Backend - Project Log
 
 ## Current state
-- Phase: 1 - Foundation, step 5 (audit log) built, waiting for owner review/merge
-- Branch: `phase-1/audit` (stacked: errors-health, identity, roles, audit; merge in that order)
-- Done so far: step 1 skeleton (merged); step 2 error envelope and readiness; step 3 identity; step 4 roles and user management; step 5 CORS and audit log
-- Next: step 6 - OpenAPI docs (Scramble), architecture, ERD and ADR docs
-- Waiting on owner: merge PRs for steps 2 to 5 in order; confirm D1 (built as bearer tokens); share the endpoints with the frontend team and ask for their origin(s) for `CORS_ALLOWED_ORIGINS`; Redis decision
+- Phase: 1 - Foundation, step 6 (docs) built, waiting for owner review/merge
+- Branch: `phase-1/docs` (stacked: errors-health, identity, roles, audit, docs; merge in that order)
+- Done so far: steps 1 to 5 (skeleton, errors and readiness, identity, roles, CORS and audit log); step 6 OpenAPI contract, architecture, ERD, ADRs, frontend guide, manual testing guide
+- Next: step 7 - staging deploy (`deploy.sh`, `docs/deployment.md`, `docs/runbook.md`), which needs the server details (D2)
+- Waiting on owner: merge PRs for steps 2 to 6 in order; work through `docs/manual-testing.md`; send `docs/api/frontend-guide.md` and `openapi.json` to the frontend team (D3) and get their origin(s) for `CORS_ALLOWED_ORIGINS`; confirm D1 (bearer tokens); decide the production database engine (MySQL 8 vs MariaDB, ADR 0006); server details (D2); Redis decision
 
 ## Decisions (D1-D7 from setup.md)
 | # | Decision | Status | Answer | ADR |
@@ -87,4 +87,16 @@
 - Listeners that send email or call outside services must be queued and added separately, never to `AuditSubscriber`, so an outage cannot block saving a change.
 **Needs owner:** review; send the frontend team the origin(s) to put in `CORS_ALLOWED_ORIGINS`.
 **Next:** step 6 - OpenAPI docs, architecture, ERD and ADR docs.
+
+### 2026-11-18 - Phase 1 step 6: API contract and documentation
+**Branch:** `phase-1/docs` | **Phase:** 1 - Foundation
+**Done:**
+- OpenAPI contract with `dedoc/scramble`: `docs/api/openapi.json` (17 endpoints, bearer security, public endpoints marked open). Interactive "Try it" page at `/docs/api` (local and staging only, never production). Every endpoint has a group, title and description naming the permission it needs; every error response is documented with the real `{message, errors, code}` shape (`app/Support/Api/ErrorEnvelopeDocumentation.php`).
+- `composer docs` regenerates the spec; a test fails `composer ci` if the committed file is stale or an API route is undocumented, so a contract change always shows up as a reviewable diff.
+- Written docs: `docs/architecture.md`, `docs/erd.md` (Mermaid), `docs/api/README.md`, `docs/api/frontend-guide.md` (for the frontend team: sign-in flow, the two email-link pages, error codes, pagination, CORS, rate limits), `docs/decisions/0001` to `0007` (ADRs), and `docs/manual-testing.md` (guided walk through every feature in PowerShell).
+- The manual testing guide was verified by running every step against a throwaway database (since deleted): all behaviour matched, including lockout, invitations, password reset, role rules, audit log, docs page and the CORS preflight.
+- 140 tests pass.
+**Decided:** the interactive docs are available on `local` and `staging` environments only. Contract changes are reviewed through the `openapi.json` diff.
+**Needs owner:** work through `docs/manual-testing.md`; send the frontend guide and spec to the frontend team (D3); decide the production database engine (ADR 0006).
+**Next:** step 7 - staging deploy script and `docs/deployment.md`, needs the server details (D2).
 

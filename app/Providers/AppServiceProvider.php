@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
 use App\Models\User;
+use App\Support\Api\ErrorEnvelopeDocumentation;
+use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -52,6 +54,13 @@ class AppServiceProvider extends ServiceProvider
         // super_admin passes every authorization check. Returning null (not
         // false) for everyone else lets the normal policies decide.
         Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
+
+        // The interactive API docs at /docs/api are for developers: available
+        // locally and on staging, never in production.
+        Gate::define('viewApiDocs', fn (?User $user = null) => $this->app->environment(['local', 'staging']));
+
+        // Document our real error format ({message, errors, code}).
+        Scramble::configure()->withDocumentTransformers(ErrorEnvelopeDocumentation::class);
 
         // Public auth endpoints: 20 requests per minute per IP.
         RateLimiter::for('auth', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));

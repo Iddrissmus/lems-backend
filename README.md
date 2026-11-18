@@ -36,6 +36,20 @@ php artisan lems:create-super-admin
 
 On a local machine, `php artisan db:seed` also creates one demo account per role (`<role>@demo.test`, password `password`). This never runs in staging or production.
 
+## Documentation
+
+| Read this | To learn |
+|---|---|
+| `docs/manual-testing.md` | Try every endpoint yourself, step by step |
+| `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs/api` |
+| `docs/api/frontend-guide.md` | What the frontend team needs |
+| `docs/architecture.md` | How the code is organised and why |
+| `docs/erd.md` | The database tables |
+| `docs/decisions/` | Why each important choice was made |
+| `docs/PROJECT_LOG.md` | What was done and when |
+
+After changing an endpoint, run `composer docs` to regenerate `docs/api/openapi.json`; `composer ci` fails if it is out of date.
+
 ## Quality checks
 
 ```powershell

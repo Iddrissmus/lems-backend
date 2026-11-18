@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'status' => $this->status->value,
             // Only present when the roles were eager-loaded (lists always do).
-            'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')->sort()->values()->all()),
+            'roles' => $this->whenLoaded('roles', fn () => $this->roleNames()),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),

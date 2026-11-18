@@ -38,6 +38,17 @@ class User extends Authenticatable
         return 'ulid';
     }
 
+    /**
+     * Role names, sorted (the roles relation must be loaded to avoid a query).
+     *
+     * @return array<int, string>
+     */
+    public function roleNames(): array
+    {
+        /** @var array<int, string> */
+        return $this->roles->pluck('name')->sort()->values()->all();
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->hasRole(Role::SuperAdmin->value);

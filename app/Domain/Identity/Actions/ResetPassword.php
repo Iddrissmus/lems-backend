@@ -24,9 +24,9 @@ class ResetPassword
 
                     // Whoever knew the old password must be signed out everywhere.
                     $user->tokens()->delete();
-                });
 
-                event(new PasswordReset($user));
+                    event(new PasswordReset($user));
+                });
             },
         );
 

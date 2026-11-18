@@ -25,7 +25,7 @@ class AssignRoles
             return $target;
         }
 
-        DB::transaction(function () use ($target, $after): void {
+        DB::transaction(function () use ($target, $before, $after, $actor): void {
             // Lock the row so two admins cannot race each other.
             User::query()->whereKey($target->getKey())->lockForUpdate()->first();
 
@@ -34,9 +34,10 @@ class AssignRoles
             }
 
             $target->syncRoles($after);
-        });
 
-        event(new UserRolesChanged($target, $before, $after, $actor));
+            // Inside the transaction: the audit entry is saved with the change or not at all.
+            event(new UserRolesChanged($target, $before, $after, $actor));
+        });
 
         return $target;
     }

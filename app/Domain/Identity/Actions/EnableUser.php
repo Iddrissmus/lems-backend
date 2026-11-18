@@ -5,6 +5,7 @@ namespace App\Domain\Identity\Actions;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Events\UserStatusChanged;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class EnableUser
 {
@@ -20,9 +21,11 @@ class EnableUser
         // so they go back to "invited", not "active".
         $after = $target->password === null ? UserStatus::Invited : UserStatus::Active;
 
-        $target->forceFill(['status' => $after])->save();
+        DB::transaction(function () use ($target, $before, $after, $actor): void {
+            $target->forceFill(['status' => $after])->save();
 
-        event(new UserStatusChanged($target, $before, $after, $actor));
+            event(new UserStatusChanged($target, $before, $after, $actor));
+        });
 
         return $target;
     }

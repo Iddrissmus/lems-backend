@@ -13,6 +13,7 @@ enum Permission: string
     case UsersUpdate = 'users.update';
     case UsersDisable = 'users.disable';
     case UsersAssignRoles = 'users.assign-roles';
+    case AuditView = 'audit.view';
 
     /**
      * @return array<int, self>

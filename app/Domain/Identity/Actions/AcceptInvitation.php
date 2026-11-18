@@ -3,6 +3,7 @@
 namespace App\Domain\Identity\Actions;
 
 use App\Domain\Identity\Enums\UserStatus;
+use App\Domain\Identity\Events\InvitationAccepted;
 use App\Exceptions\ApiException;
 use App\Models\Invitation;
 use App\Models\User;
@@ -32,6 +33,8 @@ class AcceptInvitation
             ])->save();
 
             $invitation->update(['accepted_at' => now()]);
+
+            event(new InvitationAccepted($user));
 
             return $user;
         });

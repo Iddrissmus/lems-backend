@@ -2,7 +2,9 @@
 
 namespace App\Domain\Identity\Actions;
 
+use App\Domain\Identity\Events\UserLoggedOut;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class LogoutUser
@@ -12,8 +14,12 @@ class LogoutUser
     {
         $token = $user->currentAccessToken();
 
-        if ($token instanceof PersonalAccessToken) {
-            $token->delete();
-        }
+        DB::transaction(function () use ($user, $token): void {
+            if ($token instanceof PersonalAccessToken) {
+                $token->delete();
+            }
+
+            event(new UserLoggedOut($user));
+        });
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Identity\Actions;
 
+use App\Domain\Identity\Events\PasswordChanged;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,8 @@ class ChangePassword
             $user->tokens()
                 ->when($current instanceof PersonalAccessToken, fn ($q) => $q->where('id', '!=', $current->getKey()))
                 ->delete();
+
+            event(new PasswordChanged($user));
         });
     }
 }

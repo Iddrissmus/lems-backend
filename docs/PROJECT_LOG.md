@@ -1,11 +1,11 @@
 # LEMS SCNMTC Backend - Project Log
 
 ## Current state
-- Phase: 1 - Foundation, step 4 (roles and permissions) built, waiting for owner review/merge
-- Branch: `phase-1/roles` (stacked: errors-health, then identity, then roles; merge in that order)
-- Done so far: step 1 skeleton (merged); step 2 error envelope and readiness (PR open); step 3 identity (pushed); step 4 roles and user management
-- Next: step 5 - audit log (listeners for the identity events)
-- Waiting on owner: merge PRs for steps 2, 3 and 4 in order; confirm D1 (built as bearer tokens); share the auth and user endpoints with the frontend team; Redis decision
+- Phase: 1 - Foundation, step 5 (audit log) built, waiting for owner review/merge
+- Branch: `phase-1/audit` (stacked: errors-health, identity, roles, audit; merge in that order)
+- Done so far: step 1 skeleton (merged); step 2 error envelope and readiness; step 3 identity; step 4 roles and user management; step 5 CORS and audit log
+- Next: step 6 - OpenAPI docs (Scramble), architecture, ERD and ADR docs
+- Waiting on owner: merge PRs for steps 2 to 5 in order; confirm D1 (built as bearer tokens); share the endpoints with the frontend team and ask for their origin(s) for `CORS_ALLOWED_ORIGINS`; Redis decision
 
 ## Decisions (D1-D7 from setup.md)
 | # | Decision | Status | Answer | ADR |
@@ -70,4 +70,21 @@
 - The public id is the ULID; numeric ids are never accepted by the API.
 **Needs owner:** review; confirm whether `head_of_academics` should really manage all accounts (including students); send the frontend team the new endpoints.
 **Next:** step 5 - audit log.
+
+### 2026-11-18 - Phase 1 step 5: CORS and audit log
+**Branch:** `phase-1/audit` | **Phase:** 1 - Foundation
+**Done:**
+- CORS (`config/cors.php`): only the origins in `CORS_ALLOWED_ORIGINS` (comma separated, default `http://localhost:3000`) may call `/api/*` from a browser; no cookies; `Retry-After` exposed. Needed only if the frontend's JavaScript calls the API directly from the browser; a server-side frontend does not need it.
+- Audit log: append-only `audit_logs` table (public ULID, event, actor, subject type and id, before and after as JSON, IP, user agent, time). The single writer is `AuditLogger`; `AuditSubscriber` turns domain events into entries. Recorded: login, failed login, lockout (once, when it starts), logout, password change, password reset, invitation accepted, user invited, name changed, roles changed (before and after), disabled, enabled. Passwords and tokens are never stored.
+- Atomic: actions dispatch their events inside the same database transaction as the change, so a change and its audit entry are saved together or not at all (tested by making the audit write fail).
+- Immutable: the model refuses update and delete. `GET /api/v1/audit-logs` is read-only, newest first, filters `event` (exact or `user.*` groups), `actor`, `subject_type`, `subject_id`, `from`, `to`, up to 100 per page. Only `super_admin` may read it (new permission `audit.view`, held by no other role).
+- 136 tests pass.
+**Decided (owner can change):**
+- Audit reading is super_admin only until the college says who else may see it.
+- Entries are kept indefinitely; no pruning.
+**Known limits / to do at deployment:**
+- A raw SQL `UPDATE`/`DELETE` bypasses the model rule. In production the app's MySQL user must be denied UPDATE and DELETE on `audit_logs` (to go into `docs/deployment.md` in step 7).
+- Listeners that send email or call outside services must be queued and added separately, never to `AuditSubscriber`, so an outage cannot block saving a change.
+**Needs owner:** review; send the frontend team the origin(s) to put in `CORS_ALLOWED_ORIGINS`.
+**Next:** step 6 - OpenAPI docs, architecture, ERD and ADR docs.
 

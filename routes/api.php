@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -45,4 +46,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
     Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
     Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
+
+    // Audit trail: read-only, super_admin only for now.
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 });

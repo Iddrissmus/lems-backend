@@ -32,7 +32,10 @@ class UserController extends Controller
     {
         Gate::authorize('update', $user);
 
-        $updateUser->execute($user, $request->string('name')->toString());
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $updateUser->execute($user, $request->string('name')->toString(), $actor);
 
         return new UserResource($user->load('roles'));
     }

@@ -2,6 +2,9 @@
 
 namespace App\Domain\Identity\Actions;
 
+use App\Domain\Identity\Events\LoginFailed;
+use App\Domain\Identity\Events\LoginLockedOut;
+use App\Domain\Identity\Events\UserLoggedIn;
 use App\Exceptions\ApiException;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -37,6 +40,13 @@ class LoginUser
         if (! $this->credentialsAreValid($user, $password)) {
             RateLimiter::hit($key, self::LOCKOUT_SECONDS);
 
+            event(new LoginFailed($email));
+
+            // Record the lock once, at the moment it starts (not on every blocked try).
+            if (RateLimiter::attempts($key) === self::MAX_ATTEMPTS) {
+                event(new LoginLockedOut($email, self::LOCKOUT_SECONDS));
+            }
+
             throw new ApiException(401, 'invalid_credentials', 'The email or password is incorrect.');
         }
 
@@ -44,7 +54,11 @@ class LoginUser
 
         $user->forceFill(['last_login_at' => now()])->save();
 
-        return $user->createToken($deviceName);
+        $token = $user->createToken($deviceName);
+
+        event(new UserLoggedIn($user));
+
+        return $token;
     }
 
     /**

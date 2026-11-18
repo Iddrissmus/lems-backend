@@ -24,7 +24,7 @@ class DisableUser
             return $target;
         }
 
-        DB::transaction(function () use ($target): void {
+        DB::transaction(function () use ($target, $before, $actor): void {
             if ($target->isSuperAdmin()) {
                 $this->safeguard->ensureAnotherActiveExists($target);
             }
@@ -33,9 +33,9 @@ class DisableUser
 
             // Sign them out everywhere, right now.
             $target->tokens()->delete();
-        });
 
-        event(new UserStatusChanged($target, $before, UserStatus::Disabled, $actor));
+            event(new UserStatusChanged($target, $before, UserStatus::Disabled, $actor));
+        });
 
         return $target;
     }

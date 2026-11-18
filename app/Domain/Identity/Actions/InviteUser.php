@@ -47,16 +47,19 @@ class InviteUser
             // Only the newest link works.
             $user->invitations()->whereNull('accepted_at')->delete();
 
-            return $user->invitations()->create([
+            $invitation = $user->invitations()->create([
                 'invited_by_id' => $invitedBy?->getKey(),
                 'token_hash' => hash('sha256', $plainToken),
                 'expires_at' => $expiresAt,
             ]);
+
+            // Inside the transaction: the audit entry is saved with the account or not at all.
+            event(new UserInvited($user, $roles, $invitedBy));
+
+            return $invitation;
         });
 
         $invitation->user->notify(new InvitationNotification($plainToken, $expiresAt));
-
-        event(new UserInvited($invitation->user, $roles, $invitedBy));
 
         return $invitation;
     }

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs the quality gate before every push. Enable once with:
+#   git config core.hooksPath .githooks
+echo "Running composer ci before push..."
+composer ci || { echo "composer ci failed - push blocked."; exit 1; }

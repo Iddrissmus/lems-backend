@@ -35,3 +35,10 @@ CLAUDE.local.md
 .DS_Store
 Thumbs.db
 *.log
+
+# Misc from the Laravel skeleton
+/storage/pail
+/public/build
+/public/fonts-manifest.dev.json
+/auth.json
+_ide_helper.php

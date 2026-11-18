@@ -1,11 +1,11 @@
 # LEMS SCNMTC Backend - Project Log
 
 ## Current state
-- Phase: 1 - Foundation, step 3 (identity) built, waiting for owner review/merge
-- Branch: `phase-1/identity` (stacked on `phase-1/errors-health`, merge that PR first)
-- Done so far: step 1 skeleton (merged); step 2 error envelope and `/api/v1/ready` (PR open); step 3 identity
-- Next: step 4 - roles and permissions (spatie), policies, first super_admin seeder, invite-user endpoint
-- Waiting on owner: merge PRs for steps 2 and 3; confirm D1 (built as bearer tokens); share auth contract with frontend team; Redis decision
+- Phase: 1 - Foundation, step 4 (roles and permissions) built, waiting for owner review/merge
+- Branch: `phase-1/roles` (stacked: errors-health, then identity, then roles; merge in that order)
+- Done so far: step 1 skeleton (merged); step 2 error envelope and readiness (PR open); step 3 identity (pushed); step 4 roles and user management
+- Next: step 5 - audit log (listeners for the identity events)
+- Waiting on owner: merge PRs for steps 2, 3 and 4 in order; confirm D1 (built as bearer tokens); share the auth and user endpoints with the frontend team; Redis decision
 
 ## Decisions (D1-D7 from setup.md)
 | # | Decision | Status | Answer | ADR |
@@ -56,4 +56,18 @@
 - Larastan: enabled `parseModelCastsMethod` and `treatPhpDocTypesAsCertain: false` (Sanctum may return a TransientToken).
 **Needs owner:** review; confirm password policy and token lifetime; send the frontend team the auth endpoints and the two email-link pages.
 **Next:** step 4 - roles and permissions, policies, first super_admin, invite endpoint.
+
+### 2026-11-18 - Phase 1 step 4: roles, permissions and user management
+**Branch:** `phase-1/roles` | **Phase:** 1 - Foundation
+**Done:** `spatie/laravel-permission` with the six roles as the `Role` enum and permissions as the `Permission` enum (`users.view`, `users.invite`, `users.update`, `users.disable`, `users.assign-roles`). `RolesAndPermissionsSeeder` is safe to re-run on every deploy. `UserPolicy` decides who can do what; `super_admin` passes every check through `Gate::before`. New endpoints (all need a token): `GET roles`, `GET users` (search `q`, filters `status` and `role`, `sort`, `per_page` up to 100, page-based), `POST users/invite`, `GET/PATCH users/{id}`, `POST users/{id}/resend-invitation`, `PUT users/{id}/roles`, `POST users/{id}/disable`, `POST users/{id}/enable`. `/me` now returns roles and permissions for the UI. Business logic is in Actions; role changes and disabling run in DB transactions. Events `UserInvited`, `UserRolesChanged`, `UserStatusChanged` are dispatched now; step 5 adds the audit listeners. `php artisan lems:create-super-admin` creates the first admin (password prompted, never in code). Demo users (`<role>@demo.test`) are seeded in the local environment only. 98 tests pass.
+**Decided (owner approved the first two):**
+- `super_admin` and `head_of_academics` can invite and manage accounts; only `super_admin` can assign the `super_admin` role or touch a super_admin account.
+- Other roles start with no permissions; each module grants its own when built (e.g. registrar in Phase 2), once the college confirms the rules.
+- Users can hold several roles at once.
+- Safety rules: you cannot disable yourself, and the last active super_admin can never be disabled or demoted (409 `last_super_admin`).
+- Disabling an account signs it out everywhere immediately.
+- Re-enabling someone who never accepted their invitation returns them to "invited", not "active".
+- The public id is the ULID; numeric ids are never accepted by the API.
+**Needs owner:** review; confirm whether `head_of_academics` should really manage all accounts (including students); send the frontend team the new endpoints.
+**Next:** step 5 - audit log.
 

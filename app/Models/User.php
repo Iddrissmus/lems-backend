@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Identity\Enums\Role;
 use App\Domain\Identity\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,13 +14,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasUlids, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, HasRoles, HasUlids, Notifiable, SoftDeletes;
 
     /**
      * The public id is the `ulid` column; the numeric `id` stays internal.
@@ -34,6 +36,11 @@ class User extends Authenticatable
     public function getRouteKeyName(): string
     {
         return 'ulid';
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole(Role::SuperAdmin->value);
     }
 
     /**

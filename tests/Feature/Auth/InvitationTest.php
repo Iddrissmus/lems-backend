@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Identity\Actions\InviteUser;
+use App\Domain\Identity\Enums\Role;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Exceptions\ApiException;
 use App\Models\User;
@@ -14,7 +15,7 @@ function inviteAndGetToken(string $email = 'kofi@example.com', ?User $by = null)
 {
     Notification::fake();
 
-    app(InviteUser::class)->execute('Kofi Mensah', $email, $by);
+    app(InviteUser::class)->execute('Kofi Mensah', $email, [Role::Student->value], $by);
 
     $token = null;
     Notification::assertSentTo(User::where('email', $email)->first(), InvitationNotification::class,
@@ -50,7 +51,7 @@ describe('inviting', function () {
     it('refuses to invite an email that already has an active account', function () {
         User::factory()->create(['email' => 'taken@example.com']);
 
-        expect(fn () => app(InviteUser::class)->execute('Someone', 'taken@example.com'))
+        expect(fn () => app(InviteUser::class)->execute('Someone', 'taken@example.com', [Role::Student->value]))
             ->toThrow(ApiException::class, 'A user with this email already exists.');
     });
 

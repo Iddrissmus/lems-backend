@@ -23,7 +23,18 @@ php artisan migrate
 php artisan serve
 ```
 
-Health check: <http://localhost:8000/up>. API base: `http://localhost:8000/api/v1`.
+Health check: <http://localhost:8000/up> (alive) and `/api/v1/ready` (database and cache work). API base: `http://localhost:8000/api/v1`.
+
+### First login
+
+There is no public registration, so create the first super admin from the terminal (it asks for the password, which is never stored in code):
+
+```powershell
+php artisan db:seed --class=RolesAndPermissionsSeeder
+php artisan lems:create-super-admin
+```
+
+On a local machine, `php artisan db:seed` also creates one demo account per role (`<role>@demo.test`, password `password`). This never runs in staging or production.
 
 ## Quality checks
 

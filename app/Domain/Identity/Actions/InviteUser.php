@@ -3,6 +3,7 @@
 namespace App\Domain\Identity\Actions;
 
 use App\Domain\Identity\Enums\UserStatus;
+use App\Domain\Identity\Events\UserInvited;
 use App\Exceptions\ApiException;
 use App\Models\Invitation;
 use App\Models\User;
@@ -11,19 +12,23 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Creates (or re-invites) an account and emails a one-time link.
- * Accounts are admin-created only; there is no public registration.
+ * Creates (or re-invites) an account with its roles and emails a one-time
+ * link. Accounts are admin-created only; there is no public registration.
+ * The caller has already checked the actor may grant these roles.
  */
 class InviteUser
 {
     public const VALID_FOR_HOURS = 72;
 
-    public function execute(string $name, string $email, ?User $invitedBy = null): Invitation
+    /**
+     * @param  array<int, string>  $roles
+     */
+    public function execute(string $name, string $email, array $roles, ?User $invitedBy = null): Invitation
     {
         $plainToken = Str::random(64);
         $expiresAt = now()->addHours(self::VALID_FOR_HOURS);
 
-        $invitation = DB::transaction(function () use ($name, $email, $invitedBy, $plainToken, $expiresAt): Invitation {
+        $invitation = DB::transaction(function () use ($name, $email, $roles, $invitedBy, $plainToken, $expiresAt): Invitation {
             $user = User::withTrashed()->where('email', $email)->lockForUpdate()->first();
 
             if ($user !== null && $user->status !== UserStatus::Invited) {
@@ -37,6 +42,8 @@ class InviteUser
                 $user->restore();
             }
 
+            $user->syncRoles($roles);
+
             // Only the newest link works.
             $user->invitations()->whereNull('accepted_at')->delete();
 
@@ -48,6 +55,8 @@ class InviteUser
         });
 
         $invitation->user->notify(new InvitationNotification($plainToken, $expiresAt));
+
+        event(new UserInvited($invitation->user, $roles, $invitedBy));
 
         return $invitation;
     }

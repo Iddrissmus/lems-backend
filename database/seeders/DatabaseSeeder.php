@@ -11,10 +11,16 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * The first super_admin is NOT seeded (no default password in code).
+     * Create it with: php artisan lems:create-super-admin
      */
     public function run(): void
     {
-        // Demo data is added module by module. Roles and the first
-        // super_admin are seeded in the roles/permissions step.
+        $this->call(RolesAndPermissionsSeeder::class);
+
+        if (app()->environment('local')) {
+            $this->call(DemoUsersSeeder::class);
+        }
     }
 }

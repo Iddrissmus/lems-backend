@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -36,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
             'token' => $token,
             'email' => $user->email,
         ]));
+
+        // super_admin passes every authorization check. Returning null (not
+        // false) for everyone else lets the normal policies decide.
+        Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
 
         // Public auth endpoints: 20 requests per minute per IP.
         RateLimiter::for('auth', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));

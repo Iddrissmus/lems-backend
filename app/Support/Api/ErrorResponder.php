@@ -2,6 +2,7 @@
 
 namespace App\Support\Api;
 
+use App\Exceptions\ApiException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -54,6 +55,10 @@ final class ErrorResponder
 
         if ($e instanceof ModelNotFoundException) {
             return self::respond(Response::HTTP_NOT_FOUND, 'not_found', 'The requested resource was not found.');
+        }
+
+        if ($e instanceof ApiException && $e->getStatusCode() < 500) {
+            return self::respond($e->getStatusCode(), $e->errorCode(), $e->getMessage(), headers: $e->getHeaders());
         }
 
         if ($e instanceof HttpExceptionInterface) {

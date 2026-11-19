@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsActive;
+use App\Support\Api\ErrorResponder;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,10 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'active' => EnsureUserIsActive::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request) => ErrorResponder::expectsApiResponse($request),
         );
+
+        // One envelope for every API error: {message, errors, code}.
+        $exceptions->render(fn (Throwable $e, Request $request) => ErrorResponder::render($e, $request));
     })->create();

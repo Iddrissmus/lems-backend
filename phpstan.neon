@@ -3,6 +3,11 @@ includes:
 
 parameters:
     level: 6
+    # Read the array returned by Model::casts() so enum and date casts are typed.
+    parseModelCastsMethod: true
+    # Sanctum documents currentAccessToken() as PersonalAccessToken but it can be
+    # a TransientToken (e.g. Sanctum::actingAs), so our instanceof checks are real.
+    treatPhpDocTypesAsCertain: false
     paths:
         - app
         - routes

@@ -17,7 +17,7 @@ describe('access', function () {
         actingAsRole($role);
 
         $this->getJson('/api/v1/audit-logs')->assertStatus(403)->assertJsonPath('code', 'forbidden');
-    })->with([Role::HeadOfAcademics, Role::Registrar, Role::Bursar, Role::Lecturer, Role::Student]);
+    })->with([Role::HeadOfAcademics, Role::IctAdmin, Role::AcademicAffairs, Role::Registrar, Role::Bursar, Role::Lecturer, Role::Student]);
 
     it('requires a token', function () {
         $this->getJson('/api/v1/audit-logs')->assertStatus(401);

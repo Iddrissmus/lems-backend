@@ -3,13 +3,16 @@
 namespace App\Domain\Identity\Enums;
 
 /**
- * The roles from the project brief. More (admissions_officer, ict_admin)
- * are added when their modules are built.
+ * The roles built so far. The rest of the scope's list (clinical_coordinator,
+ * external_assessor, stores_officer, librarian, src_officer) are added when
+ * their modules are built and Schedule 1 confirms the group list (D10).
  */
 enum Role: string
 {
     case SuperAdmin = 'super_admin';
     case HeadOfAcademics = 'head_of_academics';
+    case AcademicAffairs = 'academic_affairs';
+    case IctAdmin = 'ict_admin';
     case Registrar = 'registrar';
     case Bursar = 'bursar';
     case Lecturer = 'lecturer';
@@ -33,7 +36,10 @@ enum Role: string
     public function permissions(): array
     {
         return match ($this) {
-            self::HeadOfAcademics => Permission::usersGroup(),
+            // ict_admin: same account-management rights as head_of_academics
+            // (owner's call, 2026-11-20). academic_affairs gets its rights
+            // with the results module.
+            self::HeadOfAcademics, self::IctAdmin => Permission::usersGroup(),
             default => [],
         };
     }

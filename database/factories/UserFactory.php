@@ -52,6 +52,14 @@ class UserFactory extends Factory
         ]);
     }
 
+    /** Issued with a password chosen by someone else; must pick their own. */
+    public function mustChangePassword(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'must_change_password' => true,
+        ]);
+    }
+
     public function disabled(): static
     {
         return $this->state(fn (array $attributes) => [

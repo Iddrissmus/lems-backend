@@ -54,7 +54,15 @@ class LoginUser
 
         $user->forceFill(['last_login_at' => now()])->save();
 
-        $token = $user->createToken($deviceName);
+        // Store the expiry on the token itself so the answer can tell the
+        // frontend the real time (Sanctum's global setting alone only enforces
+        // it silently). SANCTUM_TOKEN_EXPIRATION is in minutes; empty means never.
+        $minutes = config('sanctum.expiration');
+        $token = $user->createToken(
+            $deviceName,
+            ['*'],
+            is_numeric($minutes) && (int) $minutes > 0 ? now()->addMinutes((int) $minutes) : null,
+        );
 
         event(new UserLoggedIn($user));
 

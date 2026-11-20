@@ -11,6 +11,10 @@ One short file per significant decision, so anyone can learn why the system is t
 | [0005](0005-roles-and-permissions.md) | Roles hold permissions; who manages accounts | Accepted |
 | [0006](0006-local-environment-and-database.md) | Local environment and database engine | Accepted for local, open for production |
 | [0007](0007-invite-only-accounts-and-lockout.md) | Invite-only accounts, password policy and login lockout | Accepted, policy to be confirmed |
+| [0008](0008-success-envelope-and-route-names.md) | Success envelope `{data, meta}` and route names follow the agreed contract | Accepted, frontend to confirm |
+| [0009](0009-forced-password-change.md) | Forced password change for issued accounts | Accepted |
+| [0010](0010-multi-tenancy-built-in-switched-off.md) | Multi-tenancy is built in and switched off | Accepted |
+| [0011](0011-slice-0-data-model.md) | Slice 0 data model: students, marks, locking and release | **Proposed**, pending the frontend's fields and owner approval |
 
 ## Template
 

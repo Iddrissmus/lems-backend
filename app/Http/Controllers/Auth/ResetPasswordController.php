@@ -21,6 +21,6 @@ class ResetPasswordController extends Controller
             $request->string('password')->toString(),
         );
 
-        return response()->json(['message' => 'Your password has been reset. Please sign in.']);
+        return response()->json(['data' => ['message' => 'Your password has been reset. Please sign in.']]);
     }
 }

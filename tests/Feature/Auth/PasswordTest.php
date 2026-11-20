@@ -12,7 +12,7 @@ describe('forgot password', function () {
         Notification::fake();
         $user = User::factory()->create();
 
-        $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])
+        $this->postJson('/api/v1/auth/password/forgot', ['email' => $user->email])
             ->assertStatus(202);
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
@@ -29,16 +29,16 @@ describe('forgot password', function () {
         $disabled = User::factory()->disabled()->create();
 
         foreach (['nobody@example.com', $invited->email, $disabled->email] as $email) {
-            $this->postJson('/api/v1/auth/forgot-password', ['email' => $email])
+            $this->postJson('/api/v1/auth/password/forgot', ['email' => $email])
                 ->assertStatus(202)
-                ->assertJsonPath('message', 'If that email belongs to an active account, a reset link has been sent.');
+                ->assertJsonPath('data.message', 'If that email belongs to an active account, a reset link has been sent.');
         }
 
         Notification::assertNothingSent();
     });
 
     it('validates the email', function () {
-        $this->postJson('/api/v1/auth/forgot-password', ['email' => 'not-an-email'])
+        $this->postJson('/api/v1/auth/password/forgot', ['email' => 'not-an-email'])
             ->assertStatus(422)
             ->assertJsonValidationErrors('email');
     });
@@ -50,7 +50,7 @@ describe('reset password', function () {
         $user->createToken('old-device');
         $token = Password::createToken($user);
 
-        $this->postJson('/api/v1/auth/reset-password', [
+        $this->postJson('/api/v1/auth/password/reset', [
             'email' => $user->email,
             'token' => $token,
             'password' => NEW_PASSWORD,
@@ -66,7 +66,7 @@ describe('reset password', function () {
     it('rejects a bad token with invalid_token', function () {
         $user = User::factory()->create();
 
-        $this->postJson('/api/v1/auth/reset-password', [
+        $this->postJson('/api/v1/auth/password/reset', [
             'email' => $user->email,
             'token' => 'wrong',
             'password' => NEW_PASSWORD,
@@ -84,14 +84,14 @@ describe('reset password', function () {
             'password_confirmation' => NEW_PASSWORD,
         ];
 
-        $this->postJson('/api/v1/auth/reset-password', $payload)->assertOk();
-        $this->postJson('/api/v1/auth/reset-password', $payload)->assertStatus(422);
+        $this->postJson('/api/v1/auth/password/reset', $payload)->assertOk();
+        $this->postJson('/api/v1/auth/password/reset', $payload)->assertStatus(422);
     });
 
     it('enforces the password policy', function (string $weak) {
         $user = User::factory()->create();
 
-        $this->postJson('/api/v1/auth/reset-password', [
+        $this->postJson('/api/v1/auth/password/reset', [
             'email' => $user->email,
             'token' => Password::createToken($user),
             'password' => $weak,
@@ -106,7 +106,7 @@ describe('change password', function () {
         $current = $user->createToken('this-device')->plainTextToken;
         $user->createToken('other-device');
 
-        $this->withToken($current)->postJson('/api/v1/auth/change-password', [
+        $this->withToken($current)->postJson('/api/v1/auth/password/change', [
             'current_password' => 'password',
             'password' => NEW_PASSWORD,
             'password_confirmation' => NEW_PASSWORD,
@@ -122,7 +122,7 @@ describe('change password', function () {
         $user = User::factory()->create();
 
         $this->withToken($user->createToken('t')->plainTextToken)
-            ->postJson('/api/v1/auth/change-password', [
+            ->postJson('/api/v1/auth/password/change', [
                 'current_password' => 'not-it',
                 'password' => NEW_PASSWORD,
                 'password_confirmation' => NEW_PASSWORD,
@@ -133,13 +133,13 @@ describe('change password', function () {
         $user = User::factory()->create();
         $token = $user->createToken('t')->plainTextToken;
 
-        $this->withToken($token)->postJson('/api/v1/auth/change-password', [
+        $this->withToken($token)->postJson('/api/v1/auth/password/change', [
             'current_password' => 'password',
             'password' => 'password',
             'password_confirmation' => 'password',
         ])->assertStatus(422)->assertJsonValidationErrors('password');
 
-        $this->withToken($token)->postJson('/api/v1/auth/change-password', [
+        $this->withToken($token)->postJson('/api/v1/auth/password/change', [
             'current_password' => 'password',
             'password' => NEW_PASSWORD,
             'password_confirmation' => 'different',
@@ -147,6 +147,6 @@ describe('change password', function () {
     });
 
     it('requires a token', function () {
-        $this->postJson('/api/v1/auth/change-password', [])->assertStatus(401);
+        $this->postJson('/api/v1/auth/password/change', [])->assertStatus(401);
     });
 });

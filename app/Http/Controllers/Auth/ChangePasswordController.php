@@ -25,6 +25,6 @@ class ChangePasswordController extends Controller
             $request->string('password')->toString(),
         );
 
-        return response()->json(['message' => 'Your password has been changed.']);
+        return response()->json(['data' => ['message' => 'Your password has been changed.']]);
     }
 }

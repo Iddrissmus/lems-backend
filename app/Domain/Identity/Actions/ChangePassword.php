@@ -22,7 +22,7 @@ class ChangePassword
         $current = $user->currentAccessToken();
 
         DB::transaction(function () use ($user, $newPassword, $current): void {
-            $user->forceFill(['password' => $newPassword])->save();
+            $user->forceFill(['password' => $newPassword, 'must_change_password' => false])->save();
 
             // Sign out every other device; keep the one making this request.
             $user->tokens()

@@ -6,11 +6,11 @@ use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 
 describe('who can manage accounts', function () {
-    it('lets super_admin and head_of_academics list users', function (Role $role) {
+    it('lets super_admin, head_of_academics and ict_admin list users', function (Role $role) {
         actingAsRole($role);
 
         $this->getJson('/api/v1/users')->assertOk();
-    })->with([Role::SuperAdmin, Role::HeadOfAcademics]);
+    })->with([Role::SuperAdmin, Role::HeadOfAcademics, Role::IctAdmin]);
 
     it('forbids every other role', function (Role $role) {
         actingAsRole($role);
@@ -19,7 +19,7 @@ describe('who can manage accounts', function () {
         $this->postJson('/api/v1/users/invite', [
             'name' => 'X', 'email' => 'x@example.com', 'roles' => [Role::Student->value],
         ])->assertStatus(403);
-    })->with([Role::Registrar, Role::Bursar, Role::Lecturer, Role::Student]);
+    })->with([Role::AcademicAffairs, Role::Registrar, Role::Bursar, Role::Lecturer, Role::Student]);
 
     it('requires a token', function () {
         $this->getJson('/api/v1/users')->assertStatus(401);
@@ -80,4 +80,12 @@ it('seeds roles idempotently and gives head_of_academics only the user permissio
     $head = Spatie\Permission\Models\Role::findByName('head_of_academics');
     expect($head->permissions->pluck('name')->sort()->values()->all())
         ->toBe(collect(Permission::usersGroup())->map->value->sort()->values()->all());
+
+    // ict_admin has the same account-management rights (owner's decision, 2026-11-20).
+    $ict = Spatie\Permission\Models\Role::findByName('ict_admin');
+    expect($ict->permissions->pluck('name')->sort()->values()->all())
+        ->toBe($head->permissions->pluck('name')->sort()->values()->all());
+
+    // academic_affairs holds nothing until the results module is built.
+    expect(Spatie\Permission\Models\Role::findByName('academic_affairs')->permissions)->toHaveCount(0);
 });

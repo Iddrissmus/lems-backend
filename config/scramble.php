@@ -55,7 +55,7 @@ return [
         'version' => env('API_VERSION', '0.0.1'),
 
         /*
-         * Description rendered on the home page of the API documentation (`/docs/api`).
+         * Description rendered on the home page of the API documentation (`/docs`).
          */
         'description' => <<<'MD'
 # LEMS SCNMTC API

@@ -1,7 +1,9 @@
 <?php
 
 use App\Domain\Identity\Enums\Role;
+use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Tenancy\TenantContext;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -39,4 +41,30 @@ function actingAsRole(Role $role): User
     Sanctum::actingAs($user);
 
     return $user;
+}
+
+function tenancyContext(): TenantContext
+{
+    return app(TenantContext::class);
+}
+
+function newTenant(string $slug): Tenant
+{
+    return Tenant::create(['name' => ucfirst($slug), 'slug' => $slug]);
+}
+
+/**
+ * A request as the owner of a real token. Real requests start with a fresh app;
+ * inside one test the guard would remember the previous caller, so reset it.
+ */
+function apiAs(string $token): TestCase
+{
+    app('auth')->forgetGuards();
+
+    return test()->withToken($token);
+}
+
+function defaultTenantId(): int
+{
+    return (int) Tenant::where('slug', 'scnmtc')->value('id');
 }

@@ -34,19 +34,27 @@ php artisan db:seed --class=RolesAndPermissionsSeeder
 php artisan lems:create-super-admin
 ```
 
-On a local machine, `php artisan db:seed` also creates one demo account per role (`<role>@demo.test`, password `password`). This never runs in staging or production.
+On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one demo account per role (`<role>@demo.test`, password `password`), plus `first-login@demo.test`, which must change its password before it can do anything. This refuses to run outside the local environment. `php artisan db:seed` (local) also loads the synthetic academic demo data (students, lecturers, courses, semesters); see `docs/demo-data.md`.
 
 ## Documentation
 
 | Read this | To learn |
 |---|---|
-| `docs/manual-testing.md` | Try every endpoint yourself, step by step |
-| `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs/api` |
+| `docs/api-testing-postman.md` | Test the whole API with Postman: one-click check, by hand, email flows |
+| `docs/frontend-integration.md` | How to connect the frontend app (tunnel, settings, joint test) |
+| `docs/manual-testing.md` | Try every endpoint yourself in PowerShell, step by step |
+| `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs` |
 | `docs/api/frontend-guide.md` | What the frontend team needs |
+| `docs/api/demo-contract.md` | Draft API contract for the demo flow, for the frontend engineer to correct |
+| `docs/api/postman/` | Postman collection and environment with every demo role |
+| `docs/demo-data.md` | The synthetic demo data and how to reset it |
+| `docs/frontend-portal-review.md` | What the frontend's screens expect |
 | `docs/architecture.md` | How the code is organised and why |
 | `docs/erd.md` | The database tables |
 | `docs/decisions/` | Why each important choice was made |
 | `docs/PROJECT_LOG.md` | What was done and when |
+| `CHANGELOG.md` | What changed, newest first |
+| `docs/handover-checklist.md` | Which handover documents exist and which are still to write |
 
 After changing an endpoint, run `composer docs` to regenerate `docs/api/openapi.json`; `composer ci` fails if it is out of date.
 

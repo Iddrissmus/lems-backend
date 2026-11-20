@@ -21,13 +21,28 @@ beforeEach(function () {
 it('logs in with valid credentials and returns a bearer token', function () {
     login(['device_name' => 'Chrome on Windows'])
         ->assertOk()
-        ->assertJsonStructure(['token', 'token_type', 'expires_at', 'user' => ['id', 'name', 'email', 'status']])
-        ->assertJsonPath('token_type', 'Bearer')
-        ->assertJsonPath('user.id', $this->user->ulid)
-        ->assertJsonMissingPath('user.password');
+        ->assertJsonStructure(['data' => ['token', 'token_type', 'expires_at', 'user' => [
+            'id', 'name', 'email', 'status', 'must_change_password', 'roles', 'permissions',
+        ]]])
+        ->assertJsonPath('data.token_type', 'Bearer')
+        ->assertJsonPath('data.user.id', $this->user->ulid)
+        ->assertJsonMissingPath('data.user.password');
 
     expect($this->user->fresh()->last_login_at)->not->toBeNull()
         ->and($this->user->tokens()->first()->name)->toBe('Chrome on Windows');
+});
+
+it('reports the real expiry of the token (12 hours) and enforces it', function () {
+    $answer = login()->assertOk()->json('data');
+
+    expect(Carbon\Carbon::parse($answer['expires_at'])->between(now()->addHours(12)->subMinute(), now()->addHours(12)->addMinute()))->toBeTrue();
+
+    $this->travel(11)->hours();
+    $this->withToken($answer['token'])->getJson('/api/v1/me')->assertOk();
+
+    $this->travel(2)->hours();
+    app('auth')->forgetGuards(); // within one test the guard would remember the user
+    $this->withToken($answer['token'])->getJson('/api/v1/me')->assertStatus(401);
 });
 
 it('expects the email to be case-insensitive', function () {

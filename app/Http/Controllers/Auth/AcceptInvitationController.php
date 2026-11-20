@@ -22,9 +22,9 @@ class AcceptInvitationController extends Controller
         );
 
         // No token is issued here: the person signs in normally afterwards.
-        return response()->json([
+        return response()->json(['data' => [
             'message' => 'Your account is ready. Please sign in.',
             'user' => new UserResource($user),
-        ]);
+        ]]);
     }
 }

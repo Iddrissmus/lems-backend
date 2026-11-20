@@ -1,22 +1,30 @@
 # LEMS SCNMTC Backend - Project Log
 
 ## Current state
-- Phase: 1 - Foundation, step 6 (docs) built, waiting for owner review/merge
-- Branch: `phase-1/docs` (stacked: errors-health, identity, roles, audit, docs; merge in that order)
-- Done so far: steps 1 to 5 (skeleton, errors and readiness, identity, roles, CORS and audit log); step 6 OpenAPI contract, architecture, ERD, ADRs, frontend guide, manual testing guide
-- Next: step 7 - staging deploy (`deploy.sh`, `docs/deployment.md`, `docs/runbook.md`), which needs the server details (D2)
-- Waiting on owner: merge PRs for steps 2 to 6 in order; work through `docs/manual-testing.md`; send `docs/api/frontend-guide.md` and `openapi.json` to the frontend team (D3) and get their origin(s) for `CORS_ALLOWED_ORIGINS`; confirm D1 (bearer tokens); decide the production database engine (MySQL 8 vs MariaDB, ADR 0006); server details (D2); Redis decision
+- Phase: 1 - Foundation, aimed at the **Slice 0 demo on Monday 23 Nov 2026**. Demo flow (from the frontend engineer): student registration, lecturer mark entry and submit, Head of Academics release, student results; staff and admin flows are extras; fees and announcements are dropped unless time is left
+- Branches (all pushed): `phase-1/auth-contract`, `phase-1/tenancy` (stacked) and `phase-1/academic-foundations` (stacked on tenancy). Steps 1 to 6 are merged into `main` (PR #3)
+- Done so far: steps 1 to 6; contract alignment, forced password change, roles, Postman collection with tests, guides; multi-tenancy (off); and now the **academic foundations**: 18 tables, models, factories, database-level grade lock (triggers), collision-safe index numbers, synthetic demo data (41 students, 8 lecturers, 12 courses, 2 semesters, an open registration window, a synthetic grade scale). 234 tests pass. No endpoints for the demo flow exist yet
+- Next: the frontend engineer reviews `docs/api/demo-contract.md` (draft v0, written 2026-11-20) and sends his files and answers; then freeze it and build endpoints in this order: student registration and course registration (with registration windows), marks (draft, review, submit with 423 `grade_locked`), release, student results; permissions and policies; audit entries; `Idempotency-Key`; audit-log triggers and `lems_app`; Postman folders; `docs/demo.md`; tunnel and `DEMO_PASSWORD`
+- Waiting on owner: push approval for `phase-1/academic-foundations`; the frontend engineer's files and answers (permission names, account ownership, mark structure, registration window audience); decision on `DEMO_PASSWORD`; production database engine (XAMPP is MariaDB 10.4.32, see ADR 0006)
 
-## Decisions (D1-D7 from setup.md)
+## Decisions (D1-D15 from setup.md and the Slice 0 scope)
 | # | Decision | Status | Answer | ADR |
 |---|---|---|---|---|
 | D1 | Frontend auth | Provisional | Built as Sanctum bearer tokens (works on any domain). Cookies can be added later if the frontend shares a parent domain | - |
-| D2 | Production server | Open | Not needed until staging deploy | - |
+| D2 | Production server | Open (demo decided) | Slice 0 demo runs on the owner's laptop behind a tunnel (Cloudflare Tunnel or ngrok), synthetic data only. Production hosting still open | - |
 | D3 | Frontend payload shapes | Open | Ask frontend team | - |
 | D4 | Data migration | Open | None assumed | - |
-| D5 | Grading scale | Open | Must come from the college | - |
+| D5 | Grading scale | Open (demo workaround) | Real scale and GPA/CGPA metric must come from the college. The demo uses a clearly labelled synthetic scale held as configuration, with no GPA | - |
 | D6 | SMS provider | Open | Email first, SMS behind interface | - |
 | D7 | Repo host | Decided | GitHub | - |
+| D8 | Payment gateway | Open | Adapter interface with a fake driver first; manual receipts come first (Phase 2) | - |
+| D9 | MFA method | Open | TOTP by default (after Slice 0) | - |
+| D10 | Full user-group list (Schedule 1) | Open | 8 of the scope's 13 roles built; the rest added with their modules | [0005](decisions/0005-roles-and-permissions.md) |
+| D11 | Retention and grace periods | Open | Configurable, nothing hard-coded | - |
+| D12 | Evaluation minimum responses | Open | Config value `EVALUATION_MIN_RESPONSES`, number agreed with Academic Affairs | - |
+| D13 | Meaning of BI requirement (FR-12.1) | Open | Fixed aggregate endpoints until clarified | - |
+| D14 | Lecturer identity in contestations | Open | Ask before building | - |
+| D15 | Capacity ceiling and support hours | Open | Ask, record in `docs/decisions/` | - |
 
 ## Log
 
@@ -100,3 +108,63 @@
 **Needs owner:** work through `docs/manual-testing.md`; send the frontend guide and spec to the frontend team (D3); decide the production database engine (ADR 0006).
 **Next:** step 7 - staging deploy script and `docs/deployment.md`, needs the server details (D2).
 
+### 2026-11-20 - Slice 0 start: auth aligned with the contract
+**Branch:** `phase-1/auth-contract` | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:**
+- Read the new scope (`updated scope.md`, draft CLAUDE.md v0.3) and the backlog PDF, compared them with what exists, and agreed a revised plan with the owner: fix the auth surface first so it is tested once, then audit hardening, tenancy, academic model, results locking, fees, announcements.
+- Commit `Add forced password change`: `users.must_change_password`, middleware `password.changed` (403 `password_change_required`; `/me`, change password and logout exempt), cleared by change or reset. Demo account `first-login@demo.test` (re-seeding resets it).
+- Commit `Add academic_affairs and ict_admin roles`: `ict_admin` has the same account-management permissions as `head_of_academics`; `academic_affairs` has none yet.
+- Commit `Align API routes and response shapes with the contract`: success bodies wrapped in `data` (login included, with roles and permissions); `/auth/password/forgot|reset|change`; `GET /health`; `FRONTEND_ORIGINS`; docs at `/docs` and `/docs.json`; `tests/Feature/ApiContractTest.php` pins it.
+- Commit `Add Postman collection, ADRs and handover docs`: `docs/api/postman/` (27 requests, saved sign-ins per demo role), ADRs 0008 and 0009, `CHANGELOG.md`, `docs/handover-checklist.md`; updated the frontend guide, API README, manual testing guide, ERD, architecture and README.
+- Checked end to end: replayed the whole collection against the running API (all 27 steps as expected, including the forced password change and role restrictions) and `composer ci` is green (Pint, Larastan level 6, 157 tests).
+**Decided:** [0008](decisions/0008-success-envelope-and-route-names.md) success envelope and route names; [0009](decisions/0009-forced-password-change.md) forced password change; `ict_admin` permissions (owner); keep invitations and add forced change (owner); synthetic demo grade scale and no GPA (owner); demo through a tunnel (owner); server-to-server frontend access is only a recommendation until the frontend team confirms.
+**Needs owner:** push or approve pushing `phase-1/auth-contract`, then merge; test with Postman; ask the frontend engineer: server-side or browser calls, demo target app and origins, screens for Monday, payload shapes (D3), whether `{data, meta}` suits them, who builds the `/accept-invitation` and `/reset-password` pages; decide whether `updated scope.md` replaces `CLAUDE.md`.
+**Environment notes (facts):** XAMPP's database is MariaDB 10.4.32 (not MySQL 8). Its panel kept stopping the server; running `mysqld` from a console worked (cause not found, not verified). The local `lems_backend` database now holds the demo users and one invited test user (`new.lecturer@demo.test`) plus audit entries from the collection replay.
+**Next:** `phase-1/audit-hardening` (triggers and `lems_app` user, approved by the owner), then `phase-1/tenancy`.
+
+### 2026-11-20 - Testing round and frontend connection guide
+**Branch:** `phase-1/auth-contract` | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:**
+- Tested in three layers: `composer ci` (162 tests); a live script against a running API on a scratch database (`lems_backend_test`, 148 checks: routing, CORS, every demo role, invitations, passwords, lockout, forced change, audit contents); and the Postman collection run with Newman (folder 9: 35 requests, 68 assertions; folders 0 to 4 also run). All pass. The owner's real `lems_backend` database was not touched (checked: same row counts before and after).
+- Bug found and fixed: login answered `expires_at: null` although tokens expire after 12 hours (commit `Report the real token expiry at login`, with a test).
+- Gap found and closed: the API did not trust a tunnel or proxy's forwarded headers, so behind ngrok every caller would share one IP (rate limit, audit log) and links would say http. Added `TRUSTED_PROXIES` (off by default; `*` for a tunnel demo) in `app/Support/Http/ProxyTrust.php`, with tests (commit `Add TRUSTED_PROXIES for tunnels and proxies`).
+- The Postman collection now has tests on every request and a one-click folder "9. Automated checks".
+- New docs: `docs/api-testing-postman.md` (how to test with Postman, expected results, last verified) and `docs/frontend-integration.md` (how the frontend connects: recommended server-to-server, tunnel setup, settings, example calls, joint test script, troubleshooting). Handover checklist, README and CHANGELOG updated.
+**Decided:** none new. Recommendation recorded in the guide: give the demo accounts stronger passwords (a `DEMO_PASSWORD` setting) before the tunnel is public; waiting for the owner's answer.
+**Needs owner:** test with Postman (`docs/api-testing-postman.md`); decide on `DEMO_PASSWORD`; push and merge the branch; answers from the frontend engineer; review the database schema proposal given in chat (tenancy columns, academic model, results, fees, announcements) before those migrations are written.
+**Environment notes (facts):** ngrok 3.39 is installed with a valid config (whether an authtoken is set is not verified). Node 24 is available. XAMPP database is MariaDB 10.4.32.
+**Next:** `phase-1/audit-hardening` (triggers, `lems_app` user), then `phase-1/tenancy`.
+
+### 2026-11-20 - Frontend findings, multi-tenancy and the proposed data model
+**Branch:** `phase-1/tenancy` (stacked on `phase-1/auth-contract`) | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:**
+- With the owner's approval and confirmation that the data is synthetic, took a read-only look at the frontend student portal (GET pages only; no credentials or personal data saved). Findings are in memory and summarised in `docs/frontend-integration.md` terms: it is a Livewire app with its own login (Fortify), student screens (dashboard, announcements, course registration, results, transcript, profile), it already states that only the Head of Academics releases results, and shows a sample 4.0 GPA labelled not official.
+- Owner decisions recorded: registration covers both staff creating the student and the student registering for courses; release by `head_of_academics`; mark entry on screen; students see letter grades and credit hours only (the frontend shows its own sample GPA and hides the weighted average %); wait for the frontend engineer's files before writing the API contract.
+- Multi-tenancy (BE-001), built in and switched off, commit `Add multi-tenancy, switched off`: `tenants` table with a default tenant created by a migration, `tenant_id` (NOT NULL, no default) on `users` and `audit_logs`, `BelongsToTenant` trait and `TenantScope` (fail closed), `TenantContext`, `tenant` middleware, `PersonalAccessToken` model that loads the token owner without the scope, `TENANCY_ENABLED=false`. 16 cross-tenant tests (models and API): tenant B cannot see, change or disable tenant A's users, sees only its own audit trail, a cross-tenant id answers 404.
+- Bug found by running the seeder: `DatabaseSeeder` used `WithoutModelEvents`, which disables the hook that stamps `tenant_id`; the NOT NULL column made it fail loudly. Removed the trait and added a test.
+- Verified: migration rolls back and re-applies; applied to the real local database (10 users and 13 audit entries all backfilled to the default tenant); `composer ci` green (179 tests); the live script (148 checks) and the Postman folder (35 requests, 68 assertions) pass over real HTTP with the tenancy code in place.
+- Wrote the proposed Slice 0 data model: `docs/erd.md` Part 2 (17 new tables, state diagram of marks and release, seven open points), [0010](decisions/0010-multi-tenancy-built-in-switched-off.md) (accepted) and [0011](decisions/0011-slice-0-data-model.md) (proposed), architecture section on tenancy.
+**Decided:** ADR 0010 (accepted): email stays globally unique for now; roles, invitations and tokens are not tenant-scoped; tenancy must not be switched on until host-based tenant resolution exists. ADR 0011 is **proposed**, not decided.
+**Needs owner:** review ADR 0011 and the ERD; push and merge the two branches; the frontend engineer's files and answers; open points 1 to 7 in `docs/erd.md` (mark structure, grade scale, registration rules, student statuses, index number format, email uniqueness, field names).
+**Next:** when his files arrive, write the API contract; then the academic model migrations on a new branch.
+
+### 2026-11-20 - Admin dashboard review and the academic foundations
+**Branch:** `phase-1/academic-foundations` (stacked on `phase-1/tenancy`) | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:**
+- With the owner's confirmation that the account and data are demo-only and synthetic, took a read-only look at the frontend admin dashboard (GET pages only; no credentials or personal data saved). Findings in `docs/frontend-portal-review.md`: registration windows, add-an-account that returns the created password and index number once, admin password resets, a roles and permissions matrix with colon-style names, mark entry by course, student status requests, CSV import, graduation list, and HR screens that have no backlog item (not built).
+- Built the foundations (owner approved "Foundations now"): migrations for 18 tables in four groups (`2026_11_20_1300xx`), generated models with `BelongsToTenant` and public ULIDs, 18 factories, enums, the `GradeLocked` exception (423), `IssueIndexNumber` (row-locked sequence, placeholder format), `audit_logs.reason`.
+- Grade lock enforced in the database: triggers reject any UPDATE or DELETE of a submitted score; tested with raw SQL, bulk updates and model events switched off, plus the model-level 423.
+- `registration_windows` and `course_offerings.exam_date` added to the design because of the admin screens; ERD Part 2 and ADR 0011 updated (ADR 0011 now accepted for the foundations).
+- Synthetic demo data (`AcademicDemoSeeder`, local only, re-runnable): 3 departments, 2 programmes, 1 academic year with two 16-week semesters, 6 cohorts, 12 courses, 9 offerings each with a lecturer and an "Overall" assessment, 8 lecturers, 41 students, about 66 registrations, an open registration window, a synthetic grade scale. The demo student has nothing registered, so registering can be shown live. `docs/demo-data.md`.
+- Tests: 62 new (tenant isolation for every model plus a guard that every table with a `tenant_id` has a scoped model, all unique rules, index numbers, the lock, the seeder); 234 pass. Migrations verified to apply, roll back (removing the triggers) and re-apply, and applied to the owner's local database.
+- Two MariaDB 10.4 pitfalls found and fixed: NOT NULL `timestamp` columns get invalid defaults and silent auto-updates (use `dateTime`), and index names over 64 characters fail.
+**Decided:** none new beyond ADR 0011's update. Pending decision: adopt the frontend's permission names (recommended) and add a release permission.
+**Needs owner:** approve pushing the branch; the frontend engineer's answers (see the questions in `docs/frontend-portal-review.md`); `DEMO_PASSWORD`.
+**Next:** the API contract draft for the demo flow, then the registration endpoints.
+
+### 2026-11-20 - Draft API contract for the demo flow
+**Branch:** `phase-1/academic-foundations` | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:** pushed the foundations branch (pre-push `composer ci` green). Wrote `docs/api/demo-contract.md`, draft v0: ground rules already built, a proposed permission set (the frontend's colon-style names plus `results:release`, `registration:self`, `results:view-own`), and endpoints with request and response JSON for reference data, registration windows, staff creating a student (temporary password returned once), student course registration (all or nothing, rejection reasons), lecturer mark entry and review and submit (423 `grade_locked`, `marks_incomplete`), Head of Academics dashboard and release, student results (letter grade and credit hours only, no GPA or percentages), an `Idempotency-Key` rule, new error codes, audit events, a table mapping his field names to ours, 10 assumptions (A1 to A10) and 13 questions (Q1 to Q13). Nothing in it is implemented.
+**Decided:** none; every business rule in the draft is labelled as an assumption for him and the owner to confirm. Nothing invents a College rule (no credit limits, clashes, arrears gating, GPA).
+**Needs owner:** send the contract to the frontend engineer; get his files (`docs/frontend/contracts`, `app/Contracts`, `app/Data`), answers to Q1 to Q13, and screenshots or fields of the lecturer mark-entry and Head release screens; decide `DEMO_PASSWORD`; confirm A5 to A9 with the College where they are College rules.
+**Next:** freeze the contract after his reply, then build registration endpoints first.

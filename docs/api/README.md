@@ -5,18 +5,25 @@ The API is described by an OpenAPI document that is **generated from the code**,
 | What | Where |
 |---|---|
 | The contract (commit this, share this) | `docs/api/openapi.json` |
-| Interactive docs with a "Try it" button | `http://localhost:8000/docs/api` (local and staging only) |
-| Same spec, live | `http://localhost:8000/docs/api.json` |
+| Interactive docs with a "Try it" button | `http://localhost:8000/docs` (local and staging only) |
+| Same spec, live | `http://localhost:8000/docs.json` |
+| Postman collection and local environment | `docs/api/postman/` |
+| Guide for the frontend team | `docs/api/frontend-guide.md` |
+| Draft contract for the demo flow (registration, marks, release, results) | `docs/api/demo-contract.md` |
 
 ## Viewing it
 
 1. Start the app: `php artisan serve`
-2. Open <http://localhost:8000/docs/api>
+2. Open <http://localhost:8000/docs>
 3. Pick an endpoint on the left. Use **Try it** to send a real request. Paste your token into the authorization box after signing in (see `docs/manual-testing.md`).
 
 The page is switched off in production.
 
-You can also import `docs/api/openapi.json` into Postman, Insomnia or Bruno to get every endpoint as a ready-made request.
+A curated Postman collection (with saved sign-ins for every demo role) is in `docs/api/postman/`; see Part 0b of `docs/manual-testing.md`. You can also import `docs/api/openapi.json` into Postman, Insomnia or Bruno to get every endpoint as a plain request. If the two disagree, the OpenAPI file is right; update the collection in the same change.
+
+## Response conventions
+
+Success: `{ "data": ..., "meta": ... }` (lists add `links`). Errors: `{ "message", "errors", "code" }`. `/health` and `/ready` are unwrapped on purpose. Details: `docs/api/frontend-guide.md` and ADR 0008.
 
 ## Changing the API
 

@@ -45,6 +45,14 @@ class UserPolicy
             && ! $target->isSuperAdmin();
     }
 
+    /** Issue a temporary password: not for yourself, and not for a super_admin unless you are one. */
+    public function resetPassword(User $actor, User $target): bool
+    {
+        return $actor->can(Permission::AccountsResetPassword->value)
+            && $actor->id !== $target->id
+            && ! $target->isSuperAdmin();
+    }
+
     /**
      * @param  array<int, string>  $roles  the full set of roles being assigned
      */

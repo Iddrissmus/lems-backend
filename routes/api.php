@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Academics\ReferenceDataController;
 use App\Http\Controllers\Academics\RegistrationWindowController;
+use App\Http\Controllers\Academics\StudentController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\ReadinessController;
 use App\Http\Controllers\Users\RoleController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Controllers\Users\UserInvitationController;
+use App\Http\Controllers\Users\UserPasswordResetController;
 use App\Http\Controllers\Users\UserRolesController;
 use App\Http\Controllers\Users\UserStatusController;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +54,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(fun
         Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::post('users/{user}/resend-invitation', [UserInvitationController::class, 'resend'])->name('users.resend-invitation');
         Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
+        Route::post('users/{user}/reset-password', UserPasswordResetController::class)->name('users.reset-password');
         Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
         Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
 
@@ -66,6 +69,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(fun
         Route::get('registration-windows', [RegistrationWindowController::class, 'index'])->name('registration-windows.index');
         Route::post('registration-windows', [RegistrationWindowController::class, 'store'])->name('registration-windows.store');
         Route::post('registration-windows/{window}/close', [RegistrationWindowController::class, 'close'])->name('registration-windows.close');
+
+        // Students: staff look them up and register them.
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::post('students', [StudentController::class, 'store'])->name('students.store');
+        Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
 
         // Audit trail: read-only, super_admin only for now.
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

@@ -23,8 +23,12 @@ enum AuditEvent: string
     case UserRolesChanged = 'user.roles_changed';
     case UserDisabled = 'user.disabled';
     case UserEnabled = 'user.enabled';
+    case UserPasswordResetByAdmin = 'user.password_reset_by_admin';
 
     // Registration
     case RegistrationWindowCreated = 'registration_window.created';
     case RegistrationWindowClosed = 'registration_window.closed';
+    case StudentRegistered = 'student.registered';
+    case EnrolmentCreated = 'enrolment.created';
+    case EnrolmentWithdrawn = 'enrolment.withdrawn';
 }

@@ -27,6 +27,9 @@
             "name": "Registration windows"
         },
         {
+            "name": "Students"
+        },
+        {
             "name": "Health"
         }
     ],
@@ -1324,6 +1327,100 @@
                     },
                     "422": {
                         "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{user}/reset-password": {
+            "post": {
+                "operationId": "users.reset-password",
+                "description": "Requires accounts:reset-password. For an active account whose owner is locked out. The answer carries meta.temporary_password, shown ONCE; the person must change it at first sign-in and is signed out everywhere. You cannot do this for yourself (change your own password instead) or for a super_admin unless you are one. The audit log records that it happened, never the password.",
+                "summary": "Issue a new temporary password",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`UserResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "roles"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "temporary_password": {
+                                                    "type": "string",
+                                                    "const": "--"
+                                                }
+                                            },
+                                            "required": [
+                                                "temporary_password"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2681,6 +2778,447 @@
                 }
             }
         },
+        "/students": {
+            "get": {
+                "operationId": "students.index",
+                "description": "Requires students:view. Search q (name, email or index number); filter by programme, cohort, department (ids) and year; paged.",
+                "summary": "List students",
+                "tags": [
+                    "Students"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "programme",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "cohort",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "department",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 10
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `StudentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/StudentResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "user",
+                                                            "programme",
+                                                            "cohort"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "students.store",
+                "description": "Requires accounts:create. Creates the portal account, the student record and the index number in one step; optionally registers first courses (course_offering_ids), all or nothing. The answer carries meta.temporary_password, shown ONCE: hand it to the student, who must change it at first sign-in. It is never returned again and never written to the audit log. Send an Idempotency-Key header when retrying.",
+                "summary": "Register a student",
+                "tags": [
+                    "Students"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreStudentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`StudentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/StudentResource"
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "temporary_password": {
+                                                    "type": "string",
+                                                    "const": "--"
+                                                }
+                                            },
+                                            "required": [
+                                                "temporary_password"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/students/{student}": {
+            "get": {
+                "operationId": "students.show",
+                "description": "Requires students:view.",
+                "summary": "Show a student",
+                "tags": [
+                    "Students"
+                ],
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "description": "The student ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`StudentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/StudentResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "user",
+                                                        "programme",
+                                                        "cohort"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "operationId": "health",
@@ -3443,6 +3981,180 @@
                     "closes_at"
                 ],
                 "title": "StoreRegistrationWindowRequest"
+            },
+            "StoreStudentRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email is unique across the whole system (ADR 0010), including removed accounts.",
+                        "maxLength": 255
+                    },
+                    "programme_id": {
+                        "type": "string",
+                        "minLength": 26,
+                        "maxLength": 26
+                    },
+                    "cohort_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "minLength": 26,
+                        "maxLength": 26
+                    },
+                    "year_of_study": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 10
+                    },
+                    "moh_membership_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 30
+                    },
+                    "course_offering_ids": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        },
+                        "maxItems": 20,
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "programme_id"
+                ],
+                "title": "StoreStudentRequest"
+            },
+            "StudentResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "index_number": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "invited",
+                                    "active",
+                                    "disabled"
+                                ]
+                            },
+                            "must_change_password": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "email",
+                            "status",
+                            "must_change_password"
+                        ]
+                    },
+                    "programme": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "code": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "code",
+                            "name"
+                        ]
+                    },
+                    "cohort": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "intake_year": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "name",
+                            "intake_year"
+                        ]
+                    },
+                    "year_of_study": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "const": "active"
+                    },
+                    "moh_membership_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "registered_offerings": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "index_number",
+                    "year_of_study",
+                    "status",
+                    "moh_membership_id",
+                    "created_at"
+                ],
+                "title": "StudentResource"
             },
             "UpdateUserRequest": {
                 "type": "object",

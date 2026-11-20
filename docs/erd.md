@@ -1,6 +1,6 @@
 # Database diagram (ERD)
 
-The first diagram shows the tables that **exist today**. Part 2 is the **proposed** data model for the Slice 0 demo (student registration, mark entry, release, student results); it is a design for review, not yet built, and will be adjusted to the frontend team's fields (D3). Each later phase adds its tables here in the same change as its migrations.
+The first diagram shows the tables that **exist today**. Part 2 is the data model for the Slice 0 demo (student registration, mark entry, release, student results). **The tables, models, factories, synthetic data and the grade lock are built** (migrations of 2026-11-20); the endpoints on top of them are not, and field names will be adjusted to the frontend team's (D3). Each later phase adds its tables here in the same change as its migrations.
 
 Notes that apply to every table:
 
@@ -137,7 +137,7 @@ A user holds one or more **roles**. A role holds **permissions**. The API checks
 
 `audit_logs.subject_type` and `subject_id` point at the record that was acted on by a short type name and its public id. There is deliberately no foreign key: the history must survive even if the record is later removed.
 
-## Part 2 - Slice 0 data model (proposed, not built)
+## Part 2 - Slice 0 data model (built; endpoints still to come)
 
 The demo flow: staff register a student; the student registers for courses; the lecturer enters, reviews and submits marks (which locks them); the Head of Academics releases the course's results; the student sees letter grades. See ADR 0011 for the decisions behind this design.
 
@@ -172,8 +172,6 @@ erDiagram
         date starts_on "first-class and audited: billing will read it"
         tinyint length_weeks "16, the contract definition of a semester"
         date ends_on "derived from starts_on and length_weeks"
-        date registration_opens_on "nullable"
-        date registration_closes_on "nullable"
         boolean is_current
     }
     cohorts {
@@ -206,10 +204,22 @@ erDiagram
         char ulid UK
         bigint course_id FK
         bigint semester_id FK
+        date exam_date "nullable"
         timestamp marks_submitted_at "set when the lecturer submits: scores lock"
         bigint marks_submitted_by FK
         timestamp results_released_at "set by the Head of Academics: students can see"
         bigint results_released_by FK
+    }
+    registration_windows {
+        bigint id PK
+        char ulid UK
+        bigint semester_id FK
+        datetime opens_at
+        datetime closes_at
+        json audience "programmes and years; empty means everyone"
+        datetime closed_at "closed early by staff"
+        bigint closed_by FK
+        bigint created_by FK
     }
     staff_profiles {
         bigint id PK
@@ -298,6 +308,7 @@ erDiagram
     academic_years ||--o{ semesters : "has two"
     courses ||--o{ course_offerings : "offered as"
     semesters ||--o{ course_offerings : "in"
+    semesters ||--o{ registration_windows : "opens registration for"
     users ||--o| staff_profiles : "is"
     users ||--o| student_profiles : "is"
     programmes ||--o{ student_profiles : "studies"
@@ -314,7 +325,9 @@ erDiagram
     grade_scales ||--o{ assessment_scores : "applied"
 ```
 
-Also proposed: `audit_logs.reason` (text, nullable). Grade changes must say who, when and **why**.
+Also built: `audit_logs.reason` (text, nullable). Grade changes must say who, when and **why**.
+
+The tables were checked against the frontend's admin dashboard (`docs/frontend-portal-review.md`): that is where `registration_windows` and `offerings.exam_date` come from. Two MariaDB 10.4 details worth knowing: `NOT NULL timestamp` columns get odd defaults there, so event times use `dateTime`; and index names must stay under 64 characters, so the long ones are named by hand.
 
 ### How marks and results move
 
@@ -331,7 +344,7 @@ stateDiagram-v2
     end note
 ```
 
-- **Locking is enforced in the database,** not only in the code: a trigger rejects any UPDATE or DELETE of a score row once its status is `submitted`. A correction is a **new row** (higher `version`, `supersedes_id`, a `reason`), never an edit. The current grade is the latest approved version.
+- **Locking is enforced in the database,** not only in the code (built, and tested with raw SQL): the triggers `assessment_scores_locked_update` and `assessment_scores_locked_delete` reject any UPDATE or DELETE of a score row once its status is `submitted`. A correction is a **new row** (higher `version`, `supersedes_id`, a `reason`), never an edit. The current grade is the latest approved version.
 - **What a student sees:** only the current submitted version of their own enrolment's scores, and only when the offering's `results_released_at` is set. The API returns the letter grade and credit hours, never the numeric `score` (BE-027).
 - **Who may do what (permissions to add when built):** `students.register`, `enrolments.manage`, `marks.enter` (only for offerings the lecturer is assigned to, enforced by a query scope on `lecturer_assignments`), `marks.submit`, `results.release` (head_of_academics), `results.correct` (academic_affairs), `results.view-own` (student, own rows only).
 
@@ -346,6 +359,7 @@ stateDiagram-v2
 | 5 | Index number format (BE-008: abbreviation, programme, year, serial) | Placeholder `<programme code>/<year>/<4-digit serial>`, issued from `index_number_sequences` under a row lock | The College |
 | 6 | Email is unique across the whole system today | Kept (sign-in has no tenant yet); becomes per-tenant when a second college is onboarded (ADR 0010) | Owner |
 | 7 | Field names and shapes | Proposed; will follow the frontend's `app/Data` objects (D3) | Frontend engineer and owner |
+| 8 | Registration window audience and statuses | `audience` is a JSON list; status is derived (not yet open, open, closed) | Frontend engineer |
 
 ### Later (not part of Slice 0)
 

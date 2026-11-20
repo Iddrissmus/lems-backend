@@ -12,6 +12,8 @@ Status: **done**, **partial** (exists, grows with each module) or **todo**.
 | `docs/architecture.md` | partial | Layers and request flow; add each new domain as it is built |
 | `docs/erd.md` | partial | Database diagram; update with every migration. Part 2 is the proposed Slice 0 model |
 | `docs/decisions/` (ADRs) | partial | Why things are the way they are; one record per decision (0001 to 0011) |
+| `docs/demo-data.md` | done | What the synthetic demo data contains and how to reset it |
+| `docs/frontend-portal-review.md` | partial | What the frontend screens expect; input to the API contract |
 | `docs/PROJECT_LOG.md` | partial | Chronological log of what was done; read it first to pick up where we left off |
 | `CHANGELOG.md` | partial | What changed, newest first |
 

@@ -1,6 +1,6 @@
 # 0011 - Slice 0 data model: students, marks, locking and release
 
-Date: 2026-11-20 | Status: **Proposed** (not built; to be adjusted to the frontend team's fields and approved by the owner) | Decided by: Iddriss (flow), Claude (design)
+Date: 2026-11-20 | Status: **Accepted for the foundations**, which are built; endpoints and field names still follow the frontend team's contract (D3) | Decided by: Iddriss (flow and a single Overall mark per course), Claude (design)
 
 ## Context
 
@@ -34,3 +34,16 @@ The Monday demo flow is: staff register a student; the student registers for cou
 - If the College or the frontend needs several weighted components per course, the tables already support it; the "course grade" calculation then needs the College's rules and a `course_results` table.
 - Triggers are MySQL/MariaDB specific; the production engine decision (ADR 0006) must be settled before deployment.
 - Open points that need the College or the frontend are listed in `docs/erd.md`. Nothing in this record invents a business rule.
+
+## Update 2026-11-20: built, and changes after reviewing the admin dashboard
+
+The 17 tables, models, factories, a synthetic seeder and the grade-lock triggers are built (migrations `2026_11_20_1300xx`), with 62 tests (tenant isolation for every model, every unique rule, index numbers, the lock at application and database level, the seeder).
+
+Changes from the proposal, all driven by `docs/frontend-portal-review.md`:
+
+- **`registration_windows`** (new, 18th table): registration opens and closes in windows with an audience, not as two dates on the semester. The two date columns on `semesters` were dropped.
+- **`course_offerings.exam_date`** added (the department dashboard shows it).
+- **`audit_logs.reason`** added (grade changes carry the why).
+- **Event times are `dateTime`,** not `timestamp` (MariaDB 10.4 gives NOT NULL timestamps invalid defaults and auto-updates).
+
+Not built yet: the endpoints, the permission names (the frontend already uses colon names such as `marks:enter`; see the review page), policies, `Idempotency-Key` handling, the mapping of the database's `grade_locked` error to HTTP 423, student status requests (BE-011) and CSV import (BE-013).

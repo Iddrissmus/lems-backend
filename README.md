@@ -34,7 +34,7 @@ php artisan db:seed --class=RolesAndPermissionsSeeder
 php artisan lems:create-super-admin
 ```
 
-On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one demo account per role (`<role>@demo.test`, password `password`), plus `first-login@demo.test`, which must change its password before it can do anything. This refuses to run outside the local environment.
+On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one demo account per role (`<role>@demo.test`, password `password`), plus `first-login@demo.test`, which must change its password before it can do anything. This refuses to run outside the local environment. `php artisan db:seed` (local) also loads the synthetic academic demo data (students, lecturers, courses, semesters); see `docs/demo-data.md`.
 
 ## Documentation
 
@@ -46,6 +46,8 @@ On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one de
 | `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs` |
 | `docs/api/frontend-guide.md` | What the frontend team needs |
 | `docs/api/postman/` | Postman collection and environment with every demo role |
+| `docs/demo-data.md` | The synthetic demo data and how to reset it |
+| `docs/frontend-portal-review.md` | What the frontend's screens expect |
 | `docs/architecture.md` | How the code is organised and why |
 | `docs/erd.md` | The database tables |
 | `docs/decisions/` | Why each important choice was made |

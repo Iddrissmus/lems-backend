@@ -14,7 +14,11 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - Postman tests on every request, and a one-click folder "9. Automated checks" (35 steps).
 - `docs/api-testing-postman.md` and `docs/frontend-integration.md`.
 - Multi-tenancy, built in and switched off (`TENANCY_ENABLED=false`): `tenants` table with a default tenant, `tenant_id` on `users` and `audit_logs`, `BelongsToTenant` scope, `TenantContext`, cross-tenant tests. ADR 0010. No change for users.
-- Proposed Slice 0 data model in `docs/erd.md` (Part 2) and ADR 0011 (design only, nothing built).
+- Slice 0 data model, built: 18 tables (departments, programmes, academic years, semesters, cohorts, courses and curriculum links, course offerings, staff and student profiles, index number sequences, lecturer assignments, registration windows, enrolments, grade scales and bands, assessments, assessment scores), their models and factories, and `audit_logs.reason`. ADR 0011.
+- Database-level grade lock: triggers reject any UPDATE or DELETE of a submitted score; the model answers `423 grade_locked`.
+- Collision-safe index number issuing (`IssueIndexNumber`, placeholder format until the College confirms it).
+- Synthetic demo data (`AcademicDemoSeeder`, local only): about 40 students, 8 lecturers, 12 courses, 2 semesters, an open registration window and a synthetic grade scale. See `docs/demo-data.md`.
+- `docs/frontend-portal-review.md`: what the frontend's student and admin screens expect.
 
 ### Fixed
 - Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.

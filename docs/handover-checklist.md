@@ -10,8 +10,8 @@ Status: **done**, **partial** (exists, grows with each module) or **todo**.
 |---|---|---|
 | `README.md` | done | Local setup on Windows (PHP, XAMPP MariaDB/MySQL, `composer ci`) |
 | `docs/architecture.md` | partial | Layers and request flow; add each new domain as it is built |
-| `docs/erd.md` | partial | Database diagram; update with every migration |
-| `docs/decisions/` (ADRs) | partial | Why things are the way they are; one record per decision (0001 to 0009) |
+| `docs/erd.md` | partial | Database diagram; update with every migration. Part 2 is the proposed Slice 0 model |
+| `docs/decisions/` (ADRs) | partial | Why things are the way they are; one record per decision (0001 to 0011) |
 | `docs/PROJECT_LOG.md` | partial | Chronological log of what was done; read it first to pick up where we left off |
 | `CHANGELOG.md` | partial | What changed, newest first |
 

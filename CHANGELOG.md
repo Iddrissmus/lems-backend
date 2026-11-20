@@ -13,6 +13,8 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - `TRUSTED_PROXIES` setting so the API sees the real client IP and https behind a tunnel or reverse proxy (off by default).
 - Postman tests on every request, and a one-click folder "9. Automated checks" (35 steps).
 - `docs/api-testing-postman.md` and `docs/frontend-integration.md`.
+- Multi-tenancy, built in and switched off (`TENANCY_ENABLED=false`): `tenants` table with a default tenant, `tenant_id` on `users` and `audit_logs`, `BelongsToTenant` scope, `TenantContext`, cross-tenant tests. ADR 0010. No change for users.
+- Proposed Slice 0 data model in `docs/erd.md` (Part 2) and ADR 0011 (design only, nothing built).
 
 ### Fixed
 - Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.

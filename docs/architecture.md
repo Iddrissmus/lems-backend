@@ -21,7 +21,7 @@ A request passes through the same layers every time, and each layer has one job:
 
 | Layer | Where | Job |
 |---|---|---|
-| Route | `routes/api.php` | Maps a URL and method to a controller. Adds middleware: `auth:sanctum` (valid token), `active` (account not disabled), `password.changed` (the user has chosen their own password; `/me`, change password and logout are exempt), `throttle`. |
+| Route | `routes/api.php` | Maps a URL and method to a controller. Adds middleware: `auth:sanctum` (valid token), `active` (account not disabled), `tenant` (with tenancy on, sets the college from the signed-in user), `password.changed` (the user has chosen their own password; `/me`, change password and logout are exempt), `throttle`. |
 | Form Request | `app/Http/Requests/` | Validates and cleans the input (for example lower-cases emails). Nothing else. |
 | Controller | `app/Http/Controllers/` | Thin. Checks permission with `Gate::authorize(...)`, calls one Action, returns a Resource. No business rules. |
 | Policy | `app/Policies/` | Answers "may this user do this?". Runs on every protected endpoint. |
@@ -82,3 +82,9 @@ Actions announce what happened with plain event classes (`app/Domain/Identity/Ev
 - `docs/decisions/` - why things are the way they are
 - `docs/manual-testing.md` - try the API yourself
 - `docs/PROJECT_LOG.md` - what was done and when
+
+## Multi-tenancy (built in, switched off)
+
+Every domain table has a `tenant_id`, and every model that owns data uses the `BelongsToTenant` trait (`app/Models/Concerns`). The trait adds a global scope (`TenantScope`) so each query is limited to the current college, stamps new rows with it, and refuses to create or move a row across colleges. `TenantContext` (`app/Support/Tenancy`) says which college the request is for: always the default one while `TENANCY_ENABLED=false`, and the signed-in user's college when it is on. If the college is unknown, queries return nothing and saving throws, so an unknown tenant never means "everything". Tokens load their owner without the scope (`app/Models/PersonalAccessToken.php`) because the token is how the tenant is learned.
+
+When you add a table: give it `tenant_id` (foreign key, non-null), use `BelongsToTenant` on the model, make business-value uniques per tenant, and add the model to the cross-tenant tests in `tests/Feature/Tenancy`. Keep model events on in seeders. Details and what must be done before switching it on: `docs/decisions/0010-multi-tenancy-built-in-switched-off.md`.

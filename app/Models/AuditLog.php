@@ -14,7 +14,7 @@ use LogicException;
  * delete a row, so the trail can be trusted. (Production should also
  * deny UPDATE and DELETE on this table to the app's database user.)
  */
-#[Fillable(['event', 'actor_id', 'subject_type', 'subject_id', 'before', 'after', 'ip_address', 'user_agent'])]
+#[Fillable(['event', 'actor_id', 'subject_type', 'subject_id', 'before', 'after', 'reason', 'ip_address', 'user_agent'])]
 class AuditLog extends Model
 {
     use BelongsToTenant, HasUlids;

@@ -6,39 +6,11 @@ use App\Models\AuditLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Support\Tenancy\TenantContext;
 use Database\Seeders\DatabaseSeeder;
-use Tests\TestCase;
 
 // Multi-tenancy is built in and switched off (TENANCY_ENABLED=false). These tests
 // prove both halves: off means one college and no change for anyone; on means a
 // record of college A is invisible and untouchable for college B.
-
-function tenancyContext(): TenantContext
-{
-    return app(TenantContext::class);
-}
-
-function newTenant(string $slug): Tenant
-{
-    return Tenant::create(['name' => ucfirst($slug), 'slug' => $slug]);
-}
-
-/**
- * A request as the owner of a real token. Real requests start with a fresh app;
- * inside one test the guard would remember the previous caller, so reset it.
- */
-function apiAs(string $token): TestCase
-{
-    app('auth')->forgetGuards();
-
-    return test()->withToken($token);
-}
-
-function defaultTenantId(): int
-{
-    return (int) Tenant::where('slug', 'scnmtc')->value('id');
-}
 
 describe('with tenancy off (the default)', function () {
     it('has one default tenant that owns everything', function () {

@@ -501,6 +501,8 @@
                                                         "enum": [
                                                             "super_admin",
                                                             "head_of_academics",
+                                                            "academic_affairs",
+                                                            "ict_admin",
                                                             "registrar",
                                                             "bursar",
                                                             "lecturer",
@@ -2091,10 +2093,12 @@
             },
             "Role": {
                 "type": "string",
-                "description": "The roles from the project brief. More (admissions_officer, ict_admin) are added when their modules are built.\n",
+                "description": "The roles built so far. The rest of the scope's list (clinical_coordinator, external_assessor, stores_officer, librarian, src_officer) are added when their modules are built and Schedule 1 confirms the group list (D10).\n",
                 "enum": [
                     "super_admin",
                     "head_of_academics",
+                    "academic_affairs",
+                    "ict_admin",
                     "registrar",
                     "bursar",
                     "lecturer",

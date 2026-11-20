@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\SetTenantFromUser;
 use App\Support\Api\ErrorResponder;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
             'password.changed' => EnsurePasswordIsChanged::class,
+            'tenant' => SetTenantFromUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Domain\Identity\Enums\Role;
 use App\Domain\Identity\Enums\UserStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -21,7 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, HasUlids, Notifiable, SoftDeletes;
+    use BelongsToTenant, HasApiTokens, HasFactory, HasRoles, HasUlids, Notifiable, SoftDeletes;
 
     /**
      * The public id is the `ulid` column; the numeric `id` stays internal.

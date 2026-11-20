@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
+use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Support\Api\ErrorEnvelopeDocumentation;
 use App\Support\Http\ProxyTrust;
+use App\Support\Tenancy\TenantContext;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,7 +28,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One answer to "which college is this request for?" for the whole request.
+        $this->app->singleton(TenantContext::class);
     }
 
     /**
@@ -33,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Tokens find their owner without needing a tenant first (see PersonalAccessToken).
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
         // Real client IP and https when behind a tunnel or reverse proxy (off by default).
         ProxyTrust::configure((string) config('app.trusted_proxies'));
 

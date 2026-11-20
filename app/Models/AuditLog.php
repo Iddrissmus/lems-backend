@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ use LogicException;
 #[Fillable(['event', 'actor_id', 'subject_type', 'subject_id', 'before', 'after', 'ip_address', 'user_agent'])]
 class AuditLog extends Model
 {
-    use HasUlids;
+    use BelongsToTenant, HasUlids;
 
     public const UPDATED_AT = null;
 

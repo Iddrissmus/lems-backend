@@ -6,6 +6,7 @@ A guided walk through everything the backend can do today. You will sign in, inv
 - **You need:** the XAMPP database running, and two terminal windows open in the project folder (VS Code: Terminal > New Terminal, twice).
 - **Works in:** Windows PowerShell 5.1 and PowerShell 7. Every command is PowerShell.
 - **Nothing here can hurt real data.** It uses your local `lems_backend` database. Emails are not sent; they are written to a log file, which is how you will "receive" them.
+- **Prefer clicking to typing?** Import the Postman collection instead: see [Part 0b](#part-0b---the-postman-collection-quick-path). The PowerShell walk below goes deeper (lockout, reset links, the audit log).
 
 ## Part 0 - Prepare (once)
 
@@ -31,6 +32,26 @@ php artisan serve
 ```
 
 You should see `Server running on [http://127.0.0.1:8000]`. Use the **second terminal** for everything else.
+
+## Part 0b - The Postman collection (quick path)
+
+`docs/api/postman/` holds a ready-made collection and a local environment.
+
+1. In Postman: **Import** both files (`lems-backend.postman_collection.json` and `lems-local.postman_environment.json`) and select the **LEMS local** environment (top right).
+2. Create the demo accounts once (local only, they all use the password `password`): `php artisan db:seed --class=DemoUsersSeeder`. There is one per role, plus `first-login@demo.test`, which must change its password before it can do anything.
+3. Start the API: `php artisan serve`.
+4. Open the folder **1. Sign in as...** and send one request, for example *Sign in as super_admin*. The token is saved automatically and every other request uses it.
+5. Work down the folders. Each request has a short description. `List users` and `Invite a user` store `{{user_id}}` for the requests after them.
+
+Try these three first:
+
+| Do this | You should see |
+|---|---|
+| *Sign in as first-login*, then *List users* | `403`, `code: password_change_required`. Then *Change password* (sends the current password `password`) and *List users* works. |
+| *Sign in as student*, then *List users* | `403`, `code: forbidden` |
+| *Sign in as super_admin*, then *List audit entries* | `200` with every sign-in and change so far |
+
+The collection is a convenience. The OpenAPI spec (`docs/api/openapi.json`) is the source of truth.
 
 ## Part 1 - Set up the helpers (once per terminal window)
 
@@ -69,7 +90,7 @@ function Api {
 function Get-Token {
     param([string]$Email, [string]$Password)
     $body = @{ email = $Email; password = $Password } | ConvertTo-Json
-    (Invoke-RestMethod -Method Post -Uri "$base/auth/login" -Headers @{ Accept = "application/json" } -ContentType "application/json" -Body $body).token
+    (Invoke-RestMethod -Method Post -Uri "$base/auth/login" -Headers @{ Accept = "application/json" } -ContentType "application/json" -Body $body).data.token
 }
 
 # Get-EmailToken <page> : finds the newest emailed link ("accept-invitation" or "reset-password") in the mail log
@@ -90,6 +111,12 @@ Api GET /ready
 
 **Expect:** `{"status":"ready","checks":{"database":"ok","cache":"ok"}}`.
 If it says `unavailable` with a 503, the database is down: start it in XAMPP.
+
+```powershell
+Api GET /health
+```
+
+**Expect:** `{"status":"ok","version":"...","time":"..."}`. This one only says the app is running; it does not look at the database.
 
 Also open <http://localhost:8000/up> in a browser. It answers with a short page when the app itself is running.
 
@@ -144,7 +171,7 @@ Api GET /me
 Api GET /roles -Token $admin
 ```
 
-**Expect:** the six roles (`super_admin`, `head_of_academics`, `registrar`, `bursar`, `lecturer`, `student`).
+**Expect:** the eight roles (`super_admin`, `head_of_academics`, `academic_affairs`, `ict_admin`, `registrar`, `bursar`, `lecturer`, `student`) in `data`, and `meta.can_assign` set to `true`.
 
 **4.2 Invite a lecturer**
 
@@ -171,7 +198,7 @@ $inviteToken.Length
 Api POST /auth/invitations/accept @{ token = $inviteToken; password = "Lecturer-Passw0rd-1"; password_confirmation = "Lecturer-Passw0rd-1" }
 ```
 
-**Expect:** "Your account is ready. Please sign in." and `"status":"active"`.
+**Expect:** `data.message` "Your account is ready. Please sign in." and `data.user.status` `"active"`.
 
 **4.5 Use the same link again**
 
@@ -312,8 +339,8 @@ If you ever get 429 on everything, you hit the limit of 20 public requests per m
 **7.2 Forgot password**
 
 ```powershell
-Api POST /auth/forgot-password @{ email = $adminEmail }
-Api POST /auth/forgot-password @{ email = "ghost@example.com" }
+Api POST /auth/password/forgot @{ email = $adminEmail }
+Api POST /auth/password/forgot @{ email = "ghost@example.com" }
 ```
 
 **Expect:** both answer `202` with the *same* message, even though the second email does not exist.
@@ -322,7 +349,7 @@ Api POST /auth/forgot-password @{ email = "ghost@example.com" }
 
 ```powershell
 $resetToken = Get-EmailToken "reset-password"
-Api POST /auth/reset-password @{ email = $adminEmail; token = $resetToken; password = "Reset-Passw0rd-42"; password_confirmation = "Reset-Passw0rd-42" }
+Api POST /auth/password/reset @{ email = $adminEmail; token = $resetToken; password = "Reset-Passw0rd-42"; password_confirmation = "Reset-Passw0rd-42" }
 ```
 
 **Expect:** "Your password has been reset." Now check that everything signed in before is out:
@@ -337,13 +364,27 @@ Api GET /me -Token $admin
 
 ```powershell
 $admin = Get-Token $adminEmail "Reset-Passw0rd-42"
-Api POST /auth/change-password @{ current_password = "Reset-Passw0rd-42"; password = "short"; password_confirmation = "short" } -Token $admin
-Api POST /auth/change-password @{ current_password = "Reset-Passw0rd-42"; password = "Changed-Passw0rd-7"; password_confirmation = "Changed-Passw0rd-7" } -Token $admin
+Api POST /auth/password/change @{ current_password = "Reset-Passw0rd-42"; password = "short"; password_confirmation = "short" } -Token $admin
+Api POST /auth/password/change @{ current_password = "Reset-Passw0rd-42"; password = "Changed-Passw0rd-7"; password_confirmation = "Changed-Passw0rd-7" } -Token $admin
 ```
 
 **Expect:** the first answers `HTTP 422` with three messages about the 10 character, upper/lower case and digit rules. The second answers "Your password has been changed."
 
-**7.5 Sign out**
+**7.5 Accounts that must change their password**
+
+Accounts created by the college with a password someone else chose (the seeded demo users, and later bulk-created students) are flagged `must_change_password`. Try the demo one (run `php artisan db:seed --class=DemoUsersSeeder` first):
+
+```powershell
+$first = Get-Token "first-login@demo.test" "password"
+Api GET /me -Token $first
+Api GET /users -Token $first
+Api POST /auth/password/change @{ current_password = "password"; password = "First-Passw0rd-2026"; password_confirmation = "First-Passw0rd-2026" } -Token $first
+Api GET /me -Token $first
+```
+
+**Expect:** `/me` works and shows `"must_change_password":true`. `/users` answers `HTTP 403` with `"code":"password_change_required"`. After the change, `/me` shows `false`. The only calls allowed before the change are `/me`, change password and sign out. To repeat the test, run the demo seeder again: it puts this account back to `password` with the flag set.
+
+**7.6 Sign out**
 
 ```powershell
 Api POST /auth/logout -Token $admin
@@ -376,11 +417,11 @@ Other roles cannot read this (you saw `403` for the head of academics in 6.1), a
 
 The API documents itself, with a **Try it** button:
 
-1. Open <http://localhost:8000/docs/api>.
+1. Open <http://localhost:8000/docs>.
 2. Browse the endpoints on the left, grouped as Authentication, Users, Audit log, Health.
 3. Open an endpoint and use its **Try it** panel. Protected endpoints need your token: paste it into the authorization field of that panel (type `$admin` in the terminal to print it). Public ones, such as sign in, need no token.
 
-You can also import `docs/api/openapi.json` into Postman or Insomnia to get every endpoint as a ready-made request.
+The Postman collection in `docs/api/postman/` does the same with saved sign-ins (see Part 0b).
 
 ## Part 10 - Run the automated tests
 
@@ -390,7 +431,7 @@ In the second terminal:
 composer ci
 ```
 
-**Expect:** style check passes, static analysis passes with 0 errors, and all tests pass (140 tests at the time of writing). The tests run on a separate database (`lems_backend_test`) and never touch your data.
+**Expect:** style check passes, static analysis passes with 0 errors, and all tests pass (157 tests at the time of writing). The tests run on a separate database (`lems_backend_test`) and never touch your data.
 
 ## Checklist
 
@@ -398,7 +439,7 @@ Tick each one as you go.
 
 | # | You saw | Done |
 |---|---|---|
-| 2 | `/ready` says ready | [ ] |
+| 2 | `/ready` says ready and `/health` says ok | [ ] |
 | 3.1 | wrong password gives 401 `invalid_credentials` | [ ] |
 | 3.2 | missing fields give 422 with field errors | [ ] |
 | 3.4 | `/me` shows your roles and permissions | [ ] |
@@ -412,9 +453,10 @@ Tick each one as you go.
 | 6.2 | disabling signs the person out immediately | [ ] |
 | 6.3 | you cannot disable yourself or the last super admin | [ ] |
 | 7.1 | the sixth wrong try gives 429, even for a made-up email | [ ] |
-| 7.2 | forgot-password answers the same for real and fake emails | [ ] |
+| 7.2 | password/forgot answers the same for real and fake emails | [ ] |
 | 7.3 | reset works once and signs everything out | [ ] |
 | 7.4 | weak passwords are refused with clear messages | [ ] |
+| 7.5 | a `must_change_password` account is blocked (403 `password_change_required`) until it changes its password | [ ] |
 | 8 | the audit log shows before and after, who and where | [ ] |
 | 10 | `composer ci` is all green | [ ] |
 

@@ -36,7 +36,12 @@ class DemoUsersSeeder extends Seeder
             ['email' => 'first-login@demo.test'],
             ['name' => 'First Login (demo)', 'password' => 'password', 'status' => 'active'],
         );
-        $firstLogin->forceFill(['email_verified_at' => now(), 'must_change_password' => true])->save();
+        // Re-running the seeder puts it back to "must change", so the demo can be repeated.
+        $firstLogin->forceFill([
+            'password' => 'password',
+            'email_verified_at' => now(),
+            'must_change_password' => true,
+        ])->save();
         $firstLogin->syncRoles([Role::Lecturer->value]);
     }
 }

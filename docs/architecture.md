@@ -21,7 +21,7 @@ A request passes through the same layers every time, and each layer has one job:
 
 | Layer | Where | Job |
 |---|---|---|
-| Route | `routes/api.php` | Maps a URL and method to a controller. Adds middleware: `auth:sanctum` (valid token), `active` (account not disabled), `throttle`. |
+| Route | `routes/api.php` | Maps a URL and method to a controller. Adds middleware: `auth:sanctum` (valid token), `active` (account not disabled), `password.changed` (the user has chosen their own password; `/me`, change password and logout are exempt), `throttle`. |
 | Form Request | `app/Http/Requests/` | Validates and cleans the input (for example lower-cases emails). Nothing else. |
 | Controller | `app/Http/Controllers/` | Thin. Checks permission with `Gate::authorize(...)`, calls one Action, returns a Resource. No business rules. |
 | Policy | `app/Policies/` | Answers "may this user do this?". Runs on every protected endpoint. |

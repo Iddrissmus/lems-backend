@@ -18,6 +18,7 @@ erDiagram
         string email UK
         timestamp email_verified_at
         string password "null until an invitation is accepted"
+        boolean must_change_password "true for issued accounts until the user picks their own"
         string status "invited, active, disabled"
         timestamp last_login_at
         string remember_token

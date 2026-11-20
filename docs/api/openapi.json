@@ -30,6 +30,9 @@
             "name": "Students"
         },
         {
+            "name": "My registration (students)"
+        },
+        {
             "name": "Health"
         }
     ],
@@ -3219,6 +3222,274 @@
                 }
             }
         },
+        "/me/student": {
+            "get": {
+                "operationId": "me.student",
+                "description": "Requires registration:self. The signed-in student's own record. 404 if the account has no student record.",
+                "summary": "My student record",
+                "tags": [
+                    "My registration (students)"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`StudentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/StudentResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "user",
+                                                        "programme",
+                                                        "cohort"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/registration": {
+            "get": {
+                "operationId": "me.registration",
+                "description": "Requires registration:self. The current semester, the registration window that applies to me (open, else the next to open, else the latest closed, or null if none covers my programme and year), and the courses I have registered.",
+                "summary": "My registration this semester",
+                "tags": [
+                    "My registration (students)"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`RegistrationOverviewResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RegistrationOverviewResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/course-offerings": {
+            "get": {
+                "operationId": "me.course-offerings",
+                "description": "Requires registration:self. Courses on offer this semester that are in my programme's curriculum for my year, each with registered true or false. Optional q searches code or title.",
+                "summary": "Courses I can register for",
+                "tags": [
+                    "My registration (students)"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `CourseOfferingResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseOfferingResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/registrations": {
+            "post": {
+                "operationId": "me.registrations.store",
+                "description": "Requires registration:self and an open registration window for my programme and year. All or nothing: if any course is refused nothing is registered and the answer is 422 registration_rejected with a reason per course. 422 registration_closed when no window is open. Send an Idempotency-Key header when retrying.",
+                "summary": "Register for courses",
+                "tags": [
+                    "My registration (students)"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterCoursesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Array of `EnrolmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EnrolmentResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/registrations/{enrolment}": {
+            "delete": {
+                "operationId": "me.registrations.destroy",
+                "description": "Requires registration:self, an open registration window, and that no marks exist for the course yet. The registration is kept with status withdrawn. 404 for a registration that is not mine.",
+                "summary": "Withdraw from a course",
+                "tags": [
+                    "My registration (students)"
+                ],
+                "parameters": [
+                    {
+                        "name": "enrolment",
+                        "in": "path",
+                        "required": true,
+                        "description": "The enrolment ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`EnrolmentResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnrolmentResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "operationId": "health",
@@ -3642,6 +3913,46 @@
                 ],
                 "title": "DepartmentResource"
             },
+            "EnrolmentResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "course_offering_id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "credit_hours": {
+                        "type": "number"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "registered",
+                            "withdrawn"
+                        ]
+                    },
+                    "registered_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "course_offering_id",
+                    "code",
+                    "title",
+                    "credit_hours",
+                    "status",
+                    "registered_at"
+                ],
+                "title": "EnrolmentResource"
+            },
             "ErrorResponse": {
                 "type": "object",
                 "properties": {
@@ -3769,6 +4080,87 @@
                     "duration_years"
                 ],
                 "title": "ProgrammeResource"
+            },
+            "RegisterCoursesRequest": {
+                "type": "object",
+                "properties": {
+                    "course_offering_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "course_offering_ids"
+                ],
+                "title": "RegisterCoursesRequest"
+            },
+            "RegistrationOverviewResource": {
+                "type": "object",
+                "properties": {
+                    "semester": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "academic_year": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "academic_year",
+                            "number"
+                        ]
+                    },
+                    "window": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "status": {
+                                "type": "string"
+                            },
+                            "opens_at": {
+                                "type": "string"
+                            },
+                            "closes_at": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "status",
+                            "opens_at",
+                            "closes_at"
+                        ]
+                    },
+                    "registered": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnrolmentResource"
+                        }
+                    }
+                },
+                "required": [
+                    "semester",
+                    "window",
+                    "registered"
+                ],
+                "title": "RegistrationOverviewResource"
             },
             "RegistrationWindowResource": {
                 "type": "object",

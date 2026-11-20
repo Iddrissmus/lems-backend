@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Academics\MeStudentController;
 use App\Http\Controllers\Academics\ReferenceDataController;
 use App\Http\Controllers\Academics\RegistrationWindowController;
 use App\Http\Controllers\Academics\StudentController;
@@ -69,6 +70,13 @@ Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(fun
         Route::get('registration-windows', [RegistrationWindowController::class, 'index'])->name('registration-windows.index');
         Route::post('registration-windows', [RegistrationWindowController::class, 'store'])->name('registration-windows.store');
         Route::post('registration-windows/{window}/close', [RegistrationWindowController::class, 'close'])->name('registration-windows.close');
+
+        // A student's own side of registration (works only on their own record).
+        Route::get('me/student', [MeStudentController::class, 'profile'])->name('me.student');
+        Route::get('me/registration', [MeStudentController::class, 'registration'])->name('me.registration');
+        Route::get('me/course-offerings', [MeStudentController::class, 'courseOfferings'])->name('me.course-offerings');
+        Route::post('me/registrations', [MeStudentController::class, 'register'])->name('me.registrations.store');
+        Route::delete('me/registrations/{enrolment}', [MeStudentController::class, 'withdraw'])->name('me.registrations.destroy');
 
         // Students: staff look them up and register them.
         Route::get('students', [StudentController::class, 'index'])->name('students.index');

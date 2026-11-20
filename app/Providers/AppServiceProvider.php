@@ -80,6 +80,10 @@ class AppServiceProvider extends ServiceProvider
         // locally and on staging, never in production.
         Gate::define('viewApiDocs', fn (?User $user = null) => $this->app->environment(['local', 'staging']));
 
+        // A student working on their own registration. The record itself is found from the
+        // signed-in user, so there is nothing in the URL to tamper with.
+        Gate::define('selfRegister', fn (User $user) => $user->can(Permission::RegistrationSelf->value));
+
         // Reference data (departments, programmes, courses on offer...) is for anyone
         // who works with students or registration. super_admin passes through Gate::before.
         Gate::define('viewReferenceData', fn (User $user) => $user->hasAnyPermission([

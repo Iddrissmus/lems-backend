@@ -10,6 +10,7 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -55,12 +56,18 @@ class AppServiceProvider extends ServiceProvider
         // false) for everyone else lets the normal policies decide.
         Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
 
-        // The interactive API docs at /docs/api are for developers: available
+        // The interactive API docs at /docs are for developers: available
         // locally and on staging, never in production.
         Gate::define('viewApiDocs', fn (?User $user = null) => $this->app->environment(['local', 'staging']));
 
         // Document our real error format ({message, errors, code}).
-        Scramble::configure()->withDocumentTransformers(ErrorEnvelopeDocumentation::class);
+        Scramble::configure()
+            ->withDocumentTransformers(ErrorEnvelopeDocumentation::class)
+            // Docs page at /docs and the spec at /docs.json (the package default is /docs/api).
+            ->expose(
+                ui: fn (Router $router, $action) => $router->get('docs', $action)->name('scramble.docs.ui'),
+                document: fn (Router $router, $action) => $router->get('docs.json', $action)->name('scramble.docs.document'),
+            );
 
         // Public auth endpoints: 20 requests per minute per IP.
         RateLimiter::for('auth', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));

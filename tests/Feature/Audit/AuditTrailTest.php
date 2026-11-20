@@ -75,7 +75,7 @@ describe('authentication', function () {
     it('records a password change without any password in the entry', function () {
         $token = $this->user->createToken('t')->plainTextToken;
 
-        $this->withToken($token)->postJson('/api/v1/auth/change-password', [
+        $this->withToken($token)->postJson('/api/v1/auth/password/change', [
             'current_password' => 'password',
             'password' => 'Brand-New-Passw0rd',
             'password_confirmation' => 'Brand-New-Passw0rd',
@@ -89,7 +89,7 @@ describe('authentication', function () {
     });
 
     it('records a password reset', function () {
-        $this->postJson('/api/v1/auth/reset-password', [
+        $this->postJson('/api/v1/auth/password/reset', [
             'email' => 'ama@example.com',
             'token' => Password::createToken($this->user),
             'password' => 'Brand-New-Passw0rd',

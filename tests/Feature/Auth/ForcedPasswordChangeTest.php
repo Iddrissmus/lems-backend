@@ -10,7 +10,7 @@ it('tells the client at login that a password change is required', function () {
 
     $this->postJson('/api/v1/auth/login', ['email' => 'new@demo.test', 'password' => 'password'])
         ->assertOk()
-        ->assertJsonPath('user.must_change_password', true);
+        ->assertJsonPath('data.user.must_change_password', true);
 });
 
 it('shows normal accounts as not needing a change', function () {
@@ -46,7 +46,7 @@ it('clears the flag when the user changes their password', function () {
     $user = userWithRole(Role::SuperAdmin, ['must_change_password' => true]);
     Sanctum::actingAs($user);
 
-    $this->postJson('/api/v1/auth/change-password', [
+    $this->postJson('/api/v1/auth/password/change', [
         'current_password' => 'password',
         'password' => 'A-brand-new-Passw0rd',
         'password_confirmation' => 'A-brand-new-Passw0rd',
@@ -61,7 +61,7 @@ it('clears the flag when the user resets a forgotten password', function () {
     $user = User::factory()->mustChangePassword()->create(['email' => 'reset@demo.test']);
     $token = Password::createToken($user);
 
-    $this->postJson('/api/v1/auth/reset-password', [
+    $this->postJson('/api/v1/auth/password/reset', [
         'email' => 'reset@demo.test',
         'token' => $token,
         'password' => 'A-brand-new-Passw0rd',

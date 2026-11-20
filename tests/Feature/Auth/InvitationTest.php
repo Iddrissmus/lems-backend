@@ -83,7 +83,7 @@ describe('accepting', function () {
             'token' => $token,
             'password' => INVITE_PASSWORD,
             'password_confirmation' => INVITE_PASSWORD,
-        ])->assertOk()->assertJsonPath('user.status', 'active');
+        ])->assertOk()->assertJsonPath('data.user.status', 'active');
 
         $user = User::where('email', 'kofi@example.com')->first();
         expect($user->status)->toBe(UserStatus::Active)

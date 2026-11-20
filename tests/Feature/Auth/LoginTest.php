@@ -21,10 +21,12 @@ beforeEach(function () {
 it('logs in with valid credentials and returns a bearer token', function () {
     login(['device_name' => 'Chrome on Windows'])
         ->assertOk()
-        ->assertJsonStructure(['token', 'token_type', 'expires_at', 'user' => ['id', 'name', 'email', 'status']])
-        ->assertJsonPath('token_type', 'Bearer')
-        ->assertJsonPath('user.id', $this->user->ulid)
-        ->assertJsonMissingPath('user.password');
+        ->assertJsonStructure(['data' => ['token', 'token_type', 'expires_at', 'user' => [
+            'id', 'name', 'email', 'status', 'must_change_password', 'roles', 'permissions',
+        ]]])
+        ->assertJsonPath('data.token_type', 'Bearer')
+        ->assertJsonPath('data.user.id', $this->user->ulid)
+        ->assertJsonMissingPath('data.user.password');
 
     expect($this->user->fresh()->last_login_at)->not->toBeNull()
         ->and($this->user->tokens()->first()->name)->toBe('Chrome on Windows');

@@ -34,7 +34,7 @@ class RoleController extends Controller
 
         return response()->json([
             'data' => $roles,
-            'can_assign' => $actor->isSuperAdmin() || $actor->can(Permission::UsersAssignRoles->value),
+            'meta' => ['can_assign' => $actor->isSuperAdmin() || $actor->can(Permission::UsersAssignRoles->value)],
         ]);
     }
 }

@@ -56,6 +56,6 @@ class UserInvitationController extends Controller
 
         $inviteUser->execute($user->name, $user->email, $roles, $actor);
 
-        return response()->json(['message' => 'A new invitation has been sent.'], 202);
+        return response()->json(['data' => ['message' => 'A new invitation has been sent.']], 202);
     }
 }

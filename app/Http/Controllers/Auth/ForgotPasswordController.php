@@ -18,8 +18,8 @@ class ForgotPasswordController extends Controller
         $sendLink->execute($request->string('email')->toString());
 
         // Same answer for every address, so accounts cannot be discovered.
-        return response()->json([
+        return response()->json(['data' => [
             'message' => 'If that email belongs to an active account, a reset link has been sent.',
-        ], 202);
+        ]], 202);
     }
 }

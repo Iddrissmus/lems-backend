@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\ReadinessController;
 use App\Http\Controllers\Users\RoleController;
@@ -19,14 +20,16 @@ use Illuminate\Support\Facades\Route;
 // All routes here are served under /api/v1 (prefix set in bootstrap/app.php).
 // Endpoints are added module by module, after the OpenAPI contract is agreed.
 
-// Liveness is the built-in /up route. Readiness also checks database and cache.
+// /health: the app is running. /ready: database and cache work too. Liveness for
+// the web server itself is the built-in /up route outside /api/v1.
+Route::get('/health', HealthController::class)->name('health');
 Route::get('/ready', ReadinessController::class)->name('ready');
 
 // Public auth endpoints (rate limited per IP; login also locks per email).
 Route::prefix('auth')->middleware('throttle:auth')->group(function () {
     Route::post('login', LoginController::class)->name('auth.login');
-    Route::post('forgot-password', ForgotPasswordController::class)->name('auth.forgot-password');
-    Route::post('reset-password', ResetPasswordController::class)->name('auth.reset-password');
+    Route::post('password/forgot', ForgotPasswordController::class)->name('auth.password.forgot');
+    Route::post('password/reset', ResetPasswordController::class)->name('auth.password.reset');
     Route::post('invitations/accept', AcceptInvitationController::class)->name('auth.invitations.accept');
 });
 
@@ -34,7 +37,7 @@ Route::prefix('auth')->middleware('throttle:auth')->group(function () {
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     // Open even while a password change is pending: the user needs these to fix it.
     Route::post('auth/logout', LogoutController::class)->name('auth.logout');
-    Route::post('auth/change-password', ChangePasswordController::class)->name('auth.change-password');
+    Route::post('auth/password/change', ChangePasswordController::class)->name('auth.password.change');
     Route::get('me', MeController::class)->name('me');
 
     // Everything else waits until the user has chosen their own password.

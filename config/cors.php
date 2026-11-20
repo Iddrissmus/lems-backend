@@ -6,11 +6,11 @@
 |--------------------------------------------------------------------------
 |
 | Decides which websites may call this API from a browser. Only the origins
-| listed in CORS_ALLOWED_ORIGINS (comma separated, no trailing slash) are
+| listed in FRONTEND_ORIGINS (comma separated, no trailing slash) are
 | allowed. Requests are authenticated with a bearer token in the
 | Authorization header, so cookies are never sent (supports_credentials).
 |
-| Example: CORS_ALLOWED_ORIGINS=https://portal.example.edu.gh,http://localhost:3000
+| Example: FRONTEND_ORIGINS=https://thescnmtc-lms.fly.dev,http://localhost:3000
 |
 */
 
@@ -22,7 +22,7 @@ return [
 
     'allowed_origins' => array_values(array_filter(array_map(
         'trim',
-        explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000')),
+        explode(',', (string) env('FRONTEND_ORIGINS', 'https://thescnmtc-lms.fly.dev')),
     ))),
 
     'allowed_origins_patterns' => [],

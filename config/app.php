@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | Reverse proxies or tunnels whose forwarded headers are believed (real client
+    | IP, https). Empty = none. "*" = any (tunnel demo only). See ProxyTrust.
+    */
+    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
+
+    /*
     | Base URL of the frontend, used to build links in emails
     | (password reset, invitations). No trailing slash.
     */

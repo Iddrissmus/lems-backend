@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Domain\Audit\AuditSubscriber;
 use App\Models\User;
 use App\Support\Api\ErrorEnvelopeDocumentation;
+use App\Support\Http\ProxyTrust;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -32,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Real client IP and https when behind a tunnel or reverse proxy (off by default).
+        ProxyTrust::configure((string) config('app.trusted_proxies'));
+
         // Password policy for every "password" rule that uses Password::defaults().
         // Production also rejects passwords found in known data breaches.
         Password::defaults(fn () => Password::min(10)

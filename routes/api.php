@@ -35,7 +35,7 @@ Route::prefix('auth')->middleware('throttle:auth')->group(function () {
 });
 
 // Everything below needs a valid bearer token of an active account.
-Route::middleware(['auth:sanctum', 'tenant', 'active'])->group(function () {
+Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(function () {
     // Open even while a password change is pending: the user needs these to fix it.
     Route::post('auth/logout', LogoutController::class)->name('auth.logout');
     Route::post('auth/password/change', ChangePasswordController::class)->name('auth.password.change');

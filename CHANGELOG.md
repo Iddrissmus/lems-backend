@@ -21,6 +21,13 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - `docs/frontend-portal-review.md`: what the frontend's student and admin screens expect.
 - `docs/api/demo-contract.md`: draft v0 API contract for the demo flow (nothing implemented yet), with assumptions and questions for the frontend engineer.
 
+- Registration endpoints (docs/api/demo-contract.md sections 3 to 6): reference data (departments, programmes, cohorts, semesters, courses on offer), registration windows (list, open, close, with a computed status), staff registering a student (account, record and index number in one call; temporary password shown once; optional first courses), admin-issued temporary passwords, and a student's own registration (record, status, eligible courses, register all-or-nothing, withdraw).
+- `Idempotency-Key` handling on every write: a retry returns the saved answer (stored encrypted) and does nothing twice; reuse with a different request is 422; a request still running is 409.
+- Permissions `accounts:create`, `accounts:reset-password`, `students:view`, `registration:manage`, `registration:self`, held as proposed in the contract (colon style, to match the frontend).
+- Audit events `registration_window.created`, `registration_window.closed`, `student.registered`, `enrolment.created`, `enrolment.withdrawn`, `user.password_reset_by_admin`. Passwords are never recorded.
+- Error codes `registration_rejected`, `registration_closed`, `idempotency_key_reused`, `request_in_progress`; the error format can now carry field errors together with its own code.
+- Postman: four new folders and 25 more steps in the one-click folder (now 60).
+
 ### Fixed
 - Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.
 

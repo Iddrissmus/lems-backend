@@ -81,8 +81,21 @@ Codes you should handle:
 | 422 | `validation_failed` | Show `errors` per field. |
 | 422 | `invalid_token` | An emailed link was already used or has expired: offer to request a new one. |
 | 422 | `cannot_disable_self` | Show the `message`. |
+| 422 | `registration_rejected` | One or more courses were refused; show each reason from `errors["course_offering_ids.N"]`. Nothing was registered |
+| 422 | `registration_closed` | No registration window is open for the student |
+| 422 | `idempotency_key_reused` | You sent the same `Idempotency-Key` for a different request; use a fresh key |
+| 409 | `request_in_progress` | The same `Idempotency-Key` is still being processed; wait and retry with the same key |
+| 423 | `grade_locked` | Marks were already submitted and are locked (arrives with the marks endpoints) |
 | 429 | `too_many_requests` | Wait the number of seconds in the `Retry-After` header. Login locks an email for 15 minutes after 5 failed tries. |
 | 500 | `server_error` | Show a generic "something went wrong". |
+
+## Safe retries (`Idempotency-Key`)
+
+Send a header `Idempotency-Key: <a fresh UUID>` on every `POST`, `PUT` or `DELETE` that changes something. If the connection drops and you send the **same request with the same key** again, you get the original answer back (header `Idempotent-Replayed: true`) and nothing happens twice. Use a new key for each new user action. Only successful answers are remembered, so after an error you can fix the request and retry with the same key. Keys last 24 hours.
+
+## Registration endpoints
+
+Registration windows, registering students, a student's own course registration and the reference lists (departments, programmes, cohorts, semesters, courses on offer) are described in `docs/api/demo-contract.md` and are in the OpenAPI document.
 
 ## Lists
 

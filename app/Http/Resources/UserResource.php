@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'status' => $this->status->value,
+            'must_change_password' => (bool) $this->must_change_password,
             // Only present when the roles were eager-loaded (lists always do).
             'roles' => $this->whenLoaded('roles', fn () => $this->roleNames()),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),

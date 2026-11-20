@@ -28,7 +28,7 @@ class ErrorEnvelopeDocumentation implements DocumentTransformer
     private const DESCRIPTIONS = [
         400 => 'Bad request. code: bad_request',
         401 => 'Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)',
-        403 => 'Signed in but not allowed. code: forbidden (or account_disabled)',
+        403 => 'Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)',
         404 => 'Not found. code: not_found',
         405 => 'Method not allowed. code: method_not_allowed',
         409 => 'Conflicts with the current state. code: conflict (or last_super_admin)',

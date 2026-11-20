@@ -32,21 +32,25 @@ Route::prefix('auth')->middleware('throttle:auth')->group(function () {
 
 // Everything below needs a valid bearer token of an active account.
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
+    // Open even while a password change is pending: the user needs these to fix it.
     Route::post('auth/logout', LogoutController::class)->name('auth.logout');
     Route::post('auth/change-password', ChangePasswordController::class)->name('auth.change-password');
     Route::get('me', MeController::class)->name('me');
 
-    // Account management (permission checks live in UserPolicy).
-    Route::get('roles', RoleController::class)->name('roles.index');
-    Route::get('users', [UserController::class, 'index'])->name('users.index');
-    Route::post('users/invite', [UserInvitationController::class, 'store'])->name('users.invite');
-    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
-    Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::post('users/{user}/resend-invitation', [UserInvitationController::class, 'resend'])->name('users.resend-invitation');
-    Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
-    Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
-    Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
+    // Everything else waits until the user has chosen their own password.
+    Route::middleware('password.changed')->group(function () {
+        // Account management (permission checks live in UserPolicy).
+        Route::get('roles', RoleController::class)->name('roles.index');
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::post('users/invite', [UserInvitationController::class, 'store'])->name('users.invite');
+        Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::post('users/{user}/resend-invitation', [UserInvitationController::class, 'resend'])->name('users.resend-invitation');
+        Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
+        Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
+        Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
 
-    // Audit trail: read-only, super_admin only for now.
-    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        // Audit trail: read-only, super_admin only for now.
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    });
 });

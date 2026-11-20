@@ -413,7 +413,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -530,7 +530,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -796,7 +796,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -876,7 +876,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -957,7 +957,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1046,7 +1046,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1138,7 +1138,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1229,7 +1229,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1320,7 +1320,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1401,7 +1401,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1677,7 +1677,7 @@
                         }
                     },
                     "403": {
-                        "description": "Signed in but not allowed. code: forbidden (or account_disabled)",
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1918,6 +1918,9 @@
                             "disabled"
                         ]
                     },
+                    "must_change_password": {
+                        "type": "boolean"
+                    },
                     "roles": {
                         "type": "array",
                         "description": "Only present when the roles were eager-loaded (lists always do).",
@@ -1953,6 +1956,7 @@
                     "name",
                     "email",
                     "status",
+                    "must_change_password",
                     "email_verified_at",
                     "last_login_at",
                     "created_at",
@@ -2131,6 +2135,9 @@
                             "disabled"
                         ]
                     },
+                    "must_change_password": {
+                        "type": "boolean"
+                    },
                     "roles": {
                         "type": "array",
                         "description": "Only present when the roles were eager-loaded (lists always do).",
@@ -2162,6 +2169,7 @@
                     "name",
                     "email",
                     "status",
+                    "must_change_password",
                     "email_verified_at",
                     "last_login_at",
                     "created_at"

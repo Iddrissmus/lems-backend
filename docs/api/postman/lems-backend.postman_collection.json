@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f99306d8-285a-5e34-8217-b3c787d4d68c",
     "name": "LEMS SCNMTC Backend",
-    "description": "LEMS SCNMTC backend API. Start the API (php artisan serve) and seed the demo users (php artisan db:seed --class=DemoUsersSeeder), pick the 'LEMS local' environment, run 'Sign in as...' then any request: the token is saved automatically. The OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins. Demo accounts are synthetic and exist in the local environment only.",
+    "description": "LEMS SCNMTC backend API.\n\n1. Import this collection and the 'LEMS local' environment, and select the environment.\n2. Start the API (php artisan serve) and create the demo accounts (php artisan db:seed --class=DemoUsersSeeder). Demo accounts are synthetic and local only.\n3. Send one request from '1. Sign in as...'. The token is saved automatically.\n4. Every request has tests: open the 'Test Results' tab after sending to see green or red.\n5. To check everything at once, run ONLY the folder '9. Automated checks' in the Collection Runner (re-run 'php artisan db:seed --class=DemoUsersSeeder' first if you changed demo passwords).\n\nThe OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -55,8 +55,21 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "200 while the app runs: {status, version, time}. No database access."
-          }
+            "description": "200 while the app runs: {status, version, time}. No database access. Not wrapped in data."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('status ok with version and time', () => { pm.expect(body.status).to.eql('ok'); pm.expect(body.version).to.be.a('string'); pm.expect(body.time).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Readiness",
@@ -81,7 +94,20 @@
               "type": "noauth"
             },
             "description": "200 when database and cache work, 503 otherwise."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('database and cache ok', () => pm.expect(body.checks).to.eql({database: 'ok', cache: 'ok'}));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -131,9 +157,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -186,9 +214,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -241,9 +271,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -296,9 +328,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -351,9 +385,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -406,9 +442,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -461,9 +499,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -516,9 +556,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -571,9 +613,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('signed in', () => pm.response.to.have.status(200));",
-                  "if (body.data && body.data.token) {",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
                   "  pm.collectionVariables.set('token', body.data.token);",
                   "  pm.collectionVariables.set('my_id', body.data.user.id);",
                   "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
@@ -584,7 +628,7 @@
           ]
         }
       ],
-      "description": "Run one of these first. Every other request sends {{token}} as a bearer token."
+      "description": "Send ONE of these first. Every other request sends {{token}} as a bearer token. 'first-login' is blocked everywhere except /me and Change password until it picks its own password."
     },
     {
       "name": "2. Authentication",
@@ -609,7 +653,20 @@
               ]
             },
             "description": "Roles, permissions and must_change_password. Works even while a password change is pending."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has roles, permissions and must_change_password', () => { pm.expect(body.data.roles).to.be.an('array'); pm.expect(body.data.permissions).to.be.an('array'); pm.expect(body.data.must_change_password).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Change password",
@@ -645,7 +702,7 @@
                 }
               }
             },
-            "description": "Needs the current password. Clears must_change_password. Signs out other devices."
+            "description": "Needs the current password. Clears must_change_password and signs out other devices. CHANGES THE DEMO PASSWORD: re-run the demo seeder to reset the demo accounts."
           }
         },
         {
@@ -669,7 +726,18 @@
               ]
             },
             "description": "Revokes the current token. 204 with no body."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Forgot password",
@@ -709,7 +777,20 @@
               "type": "noauth"
             },
             "description": "Always 202. With MAIL_MAILER=log the email (and its link) is written to storage/logs/laravel.log."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 202', () => pm.response.to.have.status(202));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('message in data', () => pm.expect(body.data.message).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Reset password",
@@ -747,7 +828,8 @@
             },
             "auth": {
               "type": "noauth"
-            }
+            },
+            "description": "Paste the token from the reset email (storage/logs/laravel.log: reset-password?token=...). Expect 200; with the placeholder it correctly answers 422 invalid_token."
           }
         },
         {
@@ -786,7 +868,8 @@
             },
             "auth": {
               "type": "noauth"
-            }
+            },
+            "description": "Paste the token from the invitation email (accept-invitation?token=...). Expect 200; with the placeholder it correctly answers 422 invalid_token."
           }
         }
       ]
@@ -814,7 +897,20 @@
               ]
             },
             "description": "Needs users.view."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('roles in data and can_assign in meta', () => { pm.expect(body.data).to.be.an('array'); pm.expect(body.meta.can_assign).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "List users",
@@ -827,7 +923,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users?q=&status=active&role=student&sort=&per_page=25&page=1",
+              "raw": "{{base_url}}/users?per_page=25&page=1",
               "host": [
                 "{{base_url}}"
               ],
@@ -875,8 +971,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const b = pm.response.json();",
-                  "if (b.data && b.data.length) pm.collectionVariables.set('user_id', b.data[0].id);"
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('data, links, meta', () => { pm.expect(body.data).to.be.an('array'); pm.expect(body.links).to.be.an('object'); pm.expect(body.meta.per_page).to.eql(25); });",
+                  "if (body && body.data && body.data.length) pm.collectionVariables.set('user_id', body.data[0].id);"
                 ]
               }
             }
@@ -908,14 +1006,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"New Lecturer\",\n  \"email\": \"new.lecturer@demo.test\",\n  \"roles\": [\n    \"lecturer\"\n  ]\n}",
+              "raw": "{\n  \"name\": \"New Lecturer\",\n  \"email\": \"new.lecturer.{{$timestamp}}@demo.test\",\n  \"roles\": [\n    \"lecturer\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "Needs users.invite. The invitation email (with its link) goes to the log in local."
+            "description": "Needs users.invite. A new address each time. The invitation email (with its link) goes to the log in local. Saves {{user_id}}."
           },
           "event": [
             {
@@ -923,8 +1021,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const b = pm.response.json();",
-                  "if (b.data && b.data.id) pm.collectionVariables.set('user_id', b.data.id);"
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('invited, role lecturer', () => { pm.expect(body.data.status).to.eql('invited'); pm.expect(body.data.roles).to.eql(['lecturer']); });",
+                  "if (body && body.data && body.data.id) pm.collectionVariables.set('user_id', body.data.id);"
                 ]
               }
             }
@@ -950,7 +1050,20 @@
                 "{{user_id}}"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('the user', () => pm.expect(body.data.id).to.have.lengthOf(26));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Rename a user",
@@ -985,7 +1098,20 @@
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('renamed', () => pm.expect(body.data.name).to.eql('Renamed User'));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Re-send invitation",
@@ -1008,8 +1134,19 @@
                 "resend-invitation"
               ]
             },
-            "description": "Only for accounts that have not accepted yet."
-          }
+            "description": "Only for accounts that have not accepted yet (otherwise 409)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 202', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Set a user's roles",
@@ -1046,7 +1183,20 @@
               }
             },
             "description": "Replaces the full set of roles. Needs users.assign-roles."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('roles replaced', () => pm.expect(body.data.roles).to.eql(['academic_affairs', 'lecturer']));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Disable a user",
@@ -1070,7 +1220,20 @@
               ]
             },
             "description": "Signs them out everywhere."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('disabled', () => pm.expect(body.data.status).to.eql('disabled'));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Enable a user",
@@ -1093,7 +1256,18 @@
                 "enable"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -1111,7 +1285,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/audit-logs?event=user.*&actor=&subject_type=user&subject_id={{user_id}}&from=2026-11-01&to=&per_page=25",
+              "raw": "{{base_url}}/audit-logs?per_page=25",
               "host": [
                 "{{base_url}}"
               ],
@@ -1157,9 +1331,1492 @@
               ]
             },
             "description": "Read-only, newest first. event accepts an exact name or a group like user.*."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('entries have event, actor and time', () => { if (body.data.length) { pm.expect(body.data[0].event).to.be.a('string'); pm.expect(body.data[0].created_at).to.be.a('string'); } });"
+                ]
+              }
+            }
+          ]
         }
       ]
+    },
+    {
+      "name": "9. Automated checks (run this folder in the Collection Runner)",
+      "item": [
+        {
+          "name": "A01 Health is ok",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('ok', () => pm.expect(body.status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A02 Readiness: database and cache",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ready",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A03 Wrong password is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"wrong\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is invalid_credentials', () => pm.expect(body && body.code).to.eql('invalid_credentials'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A04 Missing login fields are refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is validation_failed', () => pm.expect(body && body.code).to.eql('validation_failed'));",
+                  "pm.test('field errors', () => { pm.expect(body.errors).to.have.property('email'); pm.expect(body.errors).to.have.property('password'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A05 No token is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is unauthenticated', () => pm.expect(body && body.code).to.eql('unauthenticated'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A06 Old route name is gone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A07 Sign in as super_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A08 /me shows super_admin and audit.view",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('super_admin with audit.view', () => { pm.expect(body.data.roles).to.eql(['super_admin']); pm.expect(body.data.permissions).to.include('audit.view'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A09 Roles: all 8 are assignable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('8 roles', () => pm.expect(body.data).to.have.lengthOf(8));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A10 List users (paged)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users?per_page=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "5",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('paged', () => { pm.expect(body.data.length).to.be.at.most(5); pm.expect(body.meta.per_page).to.eql(5); });",
+                  "if (body && body.data && body.data.length) pm.collectionVariables.set('user_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A11 Bad filter is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users?per_page=1000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "1000",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is validation_failed', () => pm.expect(body && body.code).to.eql('validation_failed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A12 Invite a lecturer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/invite",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "invite"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto Lecturer\",\n  \"email\": \"auto.{{$timestamp}}@demo.test\",\n  \"roles\": [\n    \"lecturer\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('invited', () => pm.expect(body.data.status).to.eql('invited'));",
+                  "if (body && body.data && body.data.id) pm.collectionVariables.set('user_id', body.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A13 Duplicate active email is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/invite",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "invite"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dup\",\n  \"email\": \"student@demo.test\",\n  \"roles\": [\n    \"lecturer\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A14 Rename the invited user",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto Renamed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A15 Change roles (replaces the list)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "roles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\n    \"lecturer\",\n    \"registrar\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('two roles', () => pm.expect(body.data.roles).to.eql(['lecturer', 'registrar']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A16 Disable the user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/disable",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "disable"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A17 Enable the user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/enable",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "enable"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A18 Cannot disable yourself",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{my_id}}/disable",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{my_id}}",
+                "disable"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is cannot_disable_self', () => pm.expect(body && body.code).to.eql('cannot_disable_self'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A19 Last super_admin cannot be demoted",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{my_id}}/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{my_id}}",
+                "roles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\n    \"lecturer\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is last_super_admin', () => pm.expect(body && body.code).to.eql('last_super_admin'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A20 Audit log records what we just did",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs?per_page=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has login, invite and roles change', () => { const e = body.data.map(x => x.event); pm.expect(e).to.include('auth.login'); pm.expect(e).to.include('user.invited'); pm.expect(e).to.include('user.roles_changed'); });",
+                  "pm.test('roles change has before and after', () => { const r = body.data.find(x => x.event === 'user.roles_changed'); pm.expect(r.before).to.be.an('object'); pm.expect(r.after).to.be.an('object'); });",
+                  "pm.test('never contains the demo password', () => pm.expect(pm.response.text()).to.not.include('\"password\":\"password\"'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A21 Sign in as head_of_academics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A22 Head can list users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A23 Head cannot invite a super_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/invite",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "invite"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\",\n  \"email\": \"x.{{$timestamp}}@demo.test\",\n  \"roles\": [\n    \"super_admin\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A24 Head cannot read the audit log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A25 Sign in as student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A26 Student cannot list users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A27 Student /me has no permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('student, no permissions', () => { pm.expect(body.data.roles).to.eql(['student']); pm.expect(body.data.permissions).to.eql([]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A28 Sign in as first-login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"first-login@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A29 first-login must change its password",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('flag is true', () => pm.expect(body.data.must_change_password).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A30 first-login is blocked everywhere else",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is password_change_required', () => pm.expect(body && body.code).to.eql('password_change_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A31 Sign in as ict_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A32 ict_admin can list users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A33 ict_admin cannot read the audit log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A34 Sign out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A35 The signed-out token no longer works",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is unauthenticated', () => pm.expect(body && body.code).to.eql('unauthenticated'));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "A scripted walk through the whole demo flow with an assertion on every step. In Postman: right-click this folder > Run folder (or use the Runner and select only this folder). All steps should be green. It leaves one invited test user behind per run. It does not change any demo password."
     }
   ]
 }

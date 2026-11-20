@@ -40,7 +40,9 @@ On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one de
 
 | Read this | To learn |
 |---|---|
-| `docs/manual-testing.md` | Try every endpoint yourself, step by step |
+| `docs/api-testing-postman.md` | Test the whole API with Postman: one-click check, by hand, email flows |
+| `docs/frontend-integration.md` | How to connect the frontend app (tunnel, settings, joint test) |
+| `docs/manual-testing.md` | Try every endpoint yourself in PowerShell, step by step |
 | `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs` |
 | `docs/api/frontend-guide.md` | What the frontend team needs |
 | `docs/api/postman/` | Postman collection and environment with every demo role |

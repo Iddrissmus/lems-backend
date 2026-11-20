@@ -21,14 +21,16 @@ Status: **done**, **partial** (exists, grows with each module) or **todo**.
 |---|---|---|
 | `docs/api/openapi.json` | partial | Generated from the code, checked by `composer ci` |
 | `docs/api/frontend-guide.md` | partial | Sign-in flow, shapes, errors, roles, CORS (the scope calls this `frontend-integration.md`) |
-| `docs/api/postman/` | partial | Collection and local environment with every demo role |
+| `docs/api/postman/` | partial | Collection and local environment with every demo role; every request has tests, folder 9 is a one-click check |
+| `docs/frontend-integration.md` | partial | Connecting the frontend: tunnel, settings, example calls, joint test |
 | `docs/api/README.md` | done | How the contract is produced and changed |
 
 ## Testing and demo
 
 | Document | Status | Notes |
 |---|---|---|
-| `docs/manual-testing.md` | partial | Guided walk through every feature, with a checklist |
+| `docs/api-testing-postman.md` | partial | Test the whole API with Postman; last verified date and results at the bottom |
+| `docs/manual-testing.md` | partial | Guided walk through every feature in PowerShell, with a checklist |
 | `docs/demo.md` | todo | 10-minute demo script (Slice 0) |
 
 ## Operations

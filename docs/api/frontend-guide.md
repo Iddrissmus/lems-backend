@@ -1,6 +1,6 @@
 # Guide for the frontend team
 
-Everything you need to talk to the LEMS SCNMTC API. The complete, always-current list of endpoints and fields is in `openapi.json` (or the interactive page at `/docs` on local and staging). A ready-made Postman collection is in `docs/api/postman/`. This page covers what the contract alone does not say.
+Everything you need to talk to the LEMS SCNMTC API. The complete, always-current list of endpoints and fields is in `openapi.json` (or the interactive page at `/docs` on local and staging). A ready-made Postman collection is in `docs/api/postman/`. This page covers what the contract alone does not say. How to wire the two apps together (tunnel, settings, a joint test) is in `docs/frontend-integration.md`.
 
 ## Basics
 

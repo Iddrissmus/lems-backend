@@ -51,7 +51,7 @@ Try these three first:
 | *Sign in as student*, then *List users* | `403`, `code: forbidden` |
 | *Sign in as super_admin*, then *List audit entries* | `200` with every sign-in and change so far |
 
-The collection is a convenience. The OpenAPI spec (`docs/api/openapi.json`) is the source of truth.
+The collection is a convenience. The OpenAPI spec (`docs/api/openapi.json`) is the source of truth. For the one-click check (folder 9) and the full Postman guide see `docs/api-testing-postman.md`.
 
 ## Part 1 - Set up the helpers (once per terminal window)
 

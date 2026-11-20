@@ -10,6 +10,12 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - `GET /api/v1/health` (liveness for monitors).
 - Postman collection and local environment in `docs/api/postman/`.
 - `first-login@demo.test` demo account.
+- `TRUSTED_PROXIES` setting so the API sees the real client IP and https behind a tunnel or reverse proxy (off by default).
+- Postman tests on every request, and a one-click folder "9. Automated checks" (35 steps).
+- `docs/api-testing-postman.md` and `docs/frontend-integration.md`.
+
+### Fixed
+- Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.
 
 ### Changed (affects the frontend; nothing was sent to them before this)
 - Every success response is wrapped in `data` (login included); `GET /roles` returns `meta.can_assign`. ADR 0008.

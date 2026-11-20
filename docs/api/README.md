@@ -9,6 +9,7 @@ The API is described by an OpenAPI document that is **generated from the code**,
 | Same spec, live | `http://localhost:8000/docs.json` |
 | Postman collection and local environment | `docs/api/postman/` |
 | Guide for the frontend team | `docs/api/frontend-guide.md` |
+| Draft contract for the demo flow (registration, marks, release, results) | `docs/api/demo-contract.md` |
 
 ## Viewing it
 

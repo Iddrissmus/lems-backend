@@ -2,9 +2,9 @@
 
 ## Current state
 - Phase: 1 - Foundation, aimed at the **Slice 0 demo on Monday 23 Nov 2026**. Demo flow (from the frontend engineer): student registration, lecturer mark entry and submit, Head of Academics release, student results; staff and admin flows are extras; fees and announcements are dropped unless time is left
-- Branches (all pushed except the last): `phase-1/auth-contract`, `phase-1/tenancy` (stacked), and `phase-1/academic-foundations` (stacked on tenancy, 3 commits plus the docs, **not pushed yet**). Steps 1 to 6 are merged into `main` (PR #3)
+- Branches (all pushed): `phase-1/auth-contract`, `phase-1/tenancy` (stacked) and `phase-1/academic-foundations` (stacked on tenancy). Steps 1 to 6 are merged into `main` (PR #3)
 - Done so far: steps 1 to 6; contract alignment, forced password change, roles, Postman collection with tests, guides; multi-tenancy (off); and now the **academic foundations**: 18 tables, models, factories, database-level grade lock (triggers), collision-safe index numbers, synthetic demo data (41 students, 8 lecturers, 12 courses, 2 semesters, an open registration window, a synthetic grade scale). 234 tests pass. No endpoints for the demo flow exist yet
-- Next: the API contract for the demo flow (needs the frontend engineer's files and answers); then endpoints in this order: student registration and course registration (with registration windows), marks (draft, review, submit with 423 `grade_locked`), release, student results; permissions and policies; audit entries; `Idempotency-Key`; audit-log triggers and `lems_app`; Postman folders; `docs/demo.md`; tunnel and `DEMO_PASSWORD`
+- Next: the frontend engineer reviews `docs/api/demo-contract.md` (draft v0, written 2026-11-20) and sends his files and answers; then freeze it and build endpoints in this order: student registration and course registration (with registration windows), marks (draft, review, submit with 423 `grade_locked`), release, student results; permissions and policies; audit entries; `Idempotency-Key`; audit-log triggers and `lems_app`; Postman folders; `docs/demo.md`; tunnel and `DEMO_PASSWORD`
 - Waiting on owner: push approval for `phase-1/academic-foundations`; the frontend engineer's files and answers (permission names, account ownership, mark structure, registration window audience); decision on `DEMO_PASSWORD`; production database engine (XAMPP is MariaDB 10.4.32, see ADR 0006)
 
 ## Decisions (D1-D15 from setup.md and the Slice 0 scope)
@@ -161,3 +161,10 @@
 **Decided:** none new beyond ADR 0011's update. Pending decision: adopt the frontend's permission names (recommended) and add a release permission.
 **Needs owner:** approve pushing the branch; the frontend engineer's answers (see the questions in `docs/frontend-portal-review.md`); `DEMO_PASSWORD`.
 **Next:** the API contract draft for the demo flow, then the registration endpoints.
+
+### 2026-11-20 - Draft API contract for the demo flow
+**Branch:** `phase-1/academic-foundations` | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done:** pushed the foundations branch (pre-push `composer ci` green). Wrote `docs/api/demo-contract.md`, draft v0: ground rules already built, a proposed permission set (the frontend's colon-style names plus `results:release`, `registration:self`, `results:view-own`), and endpoints with request and response JSON for reference data, registration windows, staff creating a student (temporary password returned once), student course registration (all or nothing, rejection reasons), lecturer mark entry and review and submit (423 `grade_locked`, `marks_incomplete`), Head of Academics dashboard and release, student results (letter grade and credit hours only, no GPA or percentages), an `Idempotency-Key` rule, new error codes, audit events, a table mapping his field names to ours, 10 assumptions (A1 to A10) and 13 questions (Q1 to Q13). Nothing in it is implemented.
+**Decided:** none; every business rule in the draft is labelled as an assumption for him and the owner to confirm. Nothing invents a College rule (no credit limits, clashes, arrears gating, GPA).
+**Needs owner:** send the contract to the frontend engineer; get his files (`docs/frontend/contracts`, `app/Contracts`, `app/Data`), answers to Q1 to Q13, and screenshots or fields of the lecturer mark-entry and Head release screens; decide `DEMO_PASSWORD`; confirm A5 to A9 with the College where they are College rules.
+**Next:** freeze the contract after his reply, then build registration endpoints first.

@@ -45,6 +45,7 @@ On a local machine, `php artisan db:seed --class=DemoUsersSeeder` creates one de
 | `docs/manual-testing.md` | Try every endpoint yourself in PowerShell, step by step |
 | `docs/api/README.md` | The API contract (`docs/api/openapi.json`) and the interactive page at `/docs` |
 | `docs/api/frontend-guide.md` | What the frontend team needs |
+| `docs/api/demo-contract.md` | Draft API contract for the demo flow, for the frontend engineer to correct |
 | `docs/api/postman/` | Postman collection and environment with every demo role |
 | `docs/demo-data.md` | The synthetic demo data and how to reset it |
 | `docs/frontend-portal-review.md` | What the frontend's screens expect |

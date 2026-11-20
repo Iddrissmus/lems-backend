@@ -19,6 +19,7 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - Collision-safe index number issuing (`IssueIndexNumber`, placeholder format until the College confirms it).
 - Synthetic demo data (`AcademicDemoSeeder`, local only): about 40 students, 8 lecturers, 12 courses, 2 semesters, an open registration window and a synthetic grade scale. See `docs/demo-data.md`.
 - `docs/frontend-portal-review.md`: what the frontend's student and admin screens expect.
+- `docs/api/demo-contract.md`: draft v0 API contract for the demo flow (nothing implemented yet), with assumptions and questions for the frontend engineer.
 
 ### Fixed
 - Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.

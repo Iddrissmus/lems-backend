@@ -22,6 +22,7 @@ Status: **done**, **partial** (exists, grows with each module) or **todo**.
 | Document | Status | Notes |
 |---|---|---|
 | `docs/api/openapi.json` | partial | Generated from the code, checked by `composer ci` |
+| `docs/api/demo-contract.md` | partial | Draft v0 of the contract for registration, marks, release and results; replaced by the live OpenAPI once built |
 | `docs/api/frontend-guide.md` | partial | Sign-in flow, shapes, errors, roles, CORS (the scope calls this `frontend-integration.md`) |
 | `docs/api/postman/` | partial | Collection and local environment with every demo role; every request has tests, folder 9 is a one-click check |
 | `docs/frontend-integration.md` | partial | Connecting the frontend: tunnel, settings, example calls, joint test |

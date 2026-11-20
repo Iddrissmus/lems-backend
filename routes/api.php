@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Academics\ReferenceDataController;
+use App\Http\Controllers\Academics\RegistrationWindowController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -60,6 +61,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(fun
         Route::get('cohorts', [ReferenceDataController::class, 'cohorts'])->name('cohorts.index');
         Route::get('semesters', [ReferenceDataController::class, 'semesters'])->name('semesters.index');
         Route::get('course-offerings', [ReferenceDataController::class, 'courseOfferings'])->name('course-offerings.index');
+
+        // Registration windows: when students may register.
+        Route::get('registration-windows', [RegistrationWindowController::class, 'index'])->name('registration-windows.index');
+        Route::post('registration-windows', [RegistrationWindowController::class, 'store'])->name('registration-windows.store');
+        Route::post('registration-windows/{window}/close', [RegistrationWindowController::class, 'close'])->name('registration-windows.close');
 
         // Audit trail: read-only, super_admin only for now.
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
 use App\Domain\Identity\Enums\Permission;
+use App\Models\Enrolment;
 use App\Models\PersonalAccessToken;
+use App\Models\RegistrationWindow;
+use App\Models\StudentProfile;
 use App\Models\User;
 use App\Support\Api\ErrorEnvelopeDocumentation;
 use App\Support\Http\ProxyTrust;
@@ -59,7 +62,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Short, stable names stored in the database instead of class names
         // (e.g. audit_logs.subject_type = "user"). Renaming a class stays safe.
-        Relation::morphMap(['user' => User::class]);
+        Relation::morphMap([
+            'user' => User::class,
+            'student' => StudentProfile::class,
+            'enrolment' => Enrolment::class,
+            'registration_window' => RegistrationWindow::class,
+        ]);
 
         // Every domain event that matters becomes an audit entry.
         Event::subscribe(AuditSubscriber::class);

@@ -15,6 +15,16 @@ enum Permission: string
     case UsersAssignRoles = 'users.assign-roles';
     case AuditView = 'audit.view';
 
+    // Academic modules. These use the colon style the frontend's Roles and
+    // permissions screen already shows (docs/api/demo-contract.md section 2).
+    // The users.* and audit.view names above are renamed to match once the
+    // frontend engineer confirms the vocabulary.
+    case AccountsCreate = 'accounts:create';
+    case AccountsResetPassword = 'accounts:reset-password';
+    case StudentsView = 'students:view';
+    case RegistrationManage = 'registration:manage';
+    case RegistrationSelf = 'registration:self';
+
     /**
      * @return array<int, self>
      */

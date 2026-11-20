@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
+use App\Domain\Identity\Enums\Permission;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Support\Api\ErrorEnvelopeDocumentation;
@@ -70,6 +71,15 @@ class AppServiceProvider extends ServiceProvider
         // The interactive API docs at /docs are for developers: available
         // locally and on staging, never in production.
         Gate::define('viewApiDocs', fn (?User $user = null) => $this->app->environment(['local', 'staging']));
+
+        // Reference data (departments, programmes, courses on offer...) is for anyone
+        // who works with students or registration. super_admin passes through Gate::before.
+        Gate::define('viewReferenceData', fn (User $user) => $user->hasAnyPermission([
+            Permission::StudentsView->value,
+            Permission::RegistrationManage->value,
+            Permission::RegistrationSelf->value,
+            Permission::AccountsCreate->value,
+        ]));
 
         // Document our real error format ({message, errors, code}).
         Scramble::configure()

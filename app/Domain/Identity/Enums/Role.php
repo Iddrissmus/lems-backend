@@ -36,10 +36,14 @@ enum Role: string
     public function permissions(): array
     {
         return match ($this) {
-            // ict_admin: same account-management rights as head_of_academics
-            // (owner's call, 2026-11-20). academic_affairs gets its rights
-            // with the results module.
-            self::HeadOfAcademics, self::IctAdmin => Permission::usersGroup(),
+            // ict_admin has the same account-management rights as head_of_academics
+            // (owner's call, 2026-11-20). The academic permissions are proposals
+            // from docs/api/demo-contract.md section 2, pending the frontend's answer.
+            self::HeadOfAcademics => [...Permission::usersGroup(), Permission::StudentsView, Permission::RegistrationManage],
+            self::IctAdmin => [...Permission::usersGroup(), Permission::AccountsCreate, Permission::AccountsResetPassword, Permission::StudentsView],
+            self::Registrar => [Permission::AccountsCreate, Permission::StudentsView],
+            self::AcademicAffairs => [Permission::StudentsView],
+            self::Student => [Permission::RegistrationSelf],
             default => [],
         };
     }

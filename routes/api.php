@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Academics\ReferenceDataController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -52,6 +53,13 @@ Route::middleware(['auth:sanctum', 'tenant', 'active'])->group(function () {
         Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
         Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
         Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
+
+        // Reference data for the registration screens (read-only).
+        Route::get('departments', [ReferenceDataController::class, 'departments'])->name('departments.index');
+        Route::get('programmes', [ReferenceDataController::class, 'programmes'])->name('programmes.index');
+        Route::get('cohorts', [ReferenceDataController::class, 'cohorts'])->name('cohorts.index');
+        Route::get('semesters', [ReferenceDataController::class, 'semesters'])->name('semesters.index');
+        Route::get('course-offerings', [ReferenceDataController::class, 'courseOfferings'])->name('course-offerings.index');
 
         // Audit trail: read-only, super_admin only for now.
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

@@ -1,6 +1,6 @@
 # API contract for the demo flow (DRAFT v0)
 
-**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. **Built and tested (2026-11-20): sections 3 to 6** (reference data, registration windows, staff registering students and password resets, the student's own course registration) and the `Idempotency-Key` rule, on the branch `phase-1/registration`. **Not built yet: sections 7 to 9** (lecturer marks, release, student results). Sign-in, users, roles and the audit log (section 1) were already built. Where a built endpoint differs from what this draft first said, the text says "As built". After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
+**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. **Built and tested (2026-11-20): sections 3 to 6** (reference data, registration windows, staff registering students and password resets, the student's own course registration) and the `Idempotency-Key` rule, on the branch `phase-1/registration`. **Not built yet: sections 7 to 9** (lecturer marks, release, student results); they are being built now on the branch `phase-1/marks` and this page is the proposed freeze for them. **Agreed on 2026-11-21 (owner, see ADR 0012):** password-only sign-in through our API for Monday (no passkeys or 2FA), one Overall mark per course, colon-style permission names, and sample GPA calculated by the frontend from `GET /grade-scale`. Sign-in, users, roles and the audit log (section 1) were already built. Where a built endpoint differs from what this draft first said, the text says "As built". After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
 
 **The flow it covers:** staff register a student, the student registers for courses, the lecturer enters, reviews and submits marks, the Head of Academics releases them, the student sees letter grades.
 
@@ -12,7 +12,7 @@
 |---|---|
 | Base URL | `https://<api host>/api/v1` |
 | Headers | `Accept: application/json` always; `Content-Type: application/json` with a body; `Authorization: Bearer <token>` after sign-in |
-| Sign-in | `POST /auth/login` `{email, password, device_name?}` gives `data.token`, `data.expires_at` (12 hours) and `data.user` with `roles`, `permissions`, `must_change_password`. Full details: `docs/api/frontend-guide.md` |
+| Sign-in | **Agreed (Q1):** our API owns the accounts; your server calls login and keeps the token in its own session. Password only for Monday; Fortify passkey and 2FA flows are not used. `POST /auth/login` `{email, password, device_name?}` gives `data.token`, `data.expires_at` (12 hours) and `data.user` with `roles`, `permissions`, `must_change_password`. Full details: `docs/api/frontend-guide.md` |
 | Success | `{ "data": ..., "meta": ... }`. Lists add `links` and `meta` (`current_page`, `per_page`, `total`, `last_page`); `?page=` and `?per_page=` (max 100) |
 | Errors | `{ "message", "errors": {field: [messages]}, "code" }`. Decide by status and `code`, never by `message`. 401 `unauthenticated`, 403 `forbidden`, 404 `not_found`, 409 `conflict`, 422 `validation_failed`, 423 `grade_locked`, 429 `too_many_requests` |
 | Ids | 26 character lower-case ULIDs, opaque strings. Numeric ids are never accepted |
@@ -48,7 +48,7 @@
 | `results:view-own` **new** | See my own released results | student |
 | existing `users.*`, `audit.view` | Account management and audit log | unchanged (to be renamed to the same style when you confirm) |
 
-A lecturer only ever sees courses they are assigned to, even with `courses:teach`.
+A lecturer only ever sees courses they are assigned to, even with `courses:teach`. `GET /grade-scale` (section 9) needs only a signed-in, active user.
 
 ## 3. Reference data (read-only)
 
@@ -265,15 +265,35 @@ Submitting again answers 409 `already_submitted` (or, with the same `Idempotency
     ],
     "grading": { "scale_name": "Demo scale (synthetic, not the College rules)", "is_demo": true, "official": false }
   },
-  "meta": { "gpa": null, "cgpa": null, "note": "GPA and weighted average are not computed until the College confirms its rules." }
+  "meta": { "note": "Letter grades and credit hours only. GPA is not computed by the API." }
 }
 ```
 
-Only released courses appear; a submitted but unreleased course does not. **No numeric marks, no percentages, no weighted average.** Your screen can compute a sample GPA from `letter_grade` and `credit_hours` with your own sample scale and label it not official. `semesters` is empty when nothing is released. Resit results are not part of Monday. **(A8, Q8, Q9)**
+Only released courses appear; a submitted but unreleased course does not. **No numeric marks, no percentages, no weighted average.** Your screen computes a sample GPA from `letter_grade` and `credit_hours` using the points in `GET /grade-scale` (below) and labels it not official. `semesters` is empty when nothing is released. Resit results are not part of Monday. **(A8, Q8, Q9)**
 
 ### Authorised correction (stretch, after the flow works)
 
 `POST /results/{score_id}/corrections` with `{ "score": 74, "reason": "Marks were added up wrongly" }`, permission `marks:correct`. Creates a **new version** of the mark (the original is never changed), requires a reason, is audited, and updates what the student sees. `{score_id}` comes from `GET /academics/course-offerings/{id}/results`.
+
+### The grade scale
+
+`GET /grade-scale` (any signed-in active user) returns the active scale. For Monday it is **synthetic**: the letters, bands and points are placeholders, not the College's rules (D5), and `official` is always `false`.
+
+```json
+{ "data": {
+    "name": "Demo scale (synthetic, not the College rules)",
+    "is_demo": true, "official": false,
+    "bands": [
+      { "letter": "A", "min_score": 80, "max_score": 100, "points": 4.0 },
+      { "letter": "B", "min_score": 70, "max_score": 79.99, "points": 3.0 },
+      { "letter": "C", "min_score": 60, "max_score": 69.99, "points": 2.0 },
+      { "letter": "D", "min_score": 50, "max_score": 59.99, "points": 1.0 },
+      { "letter": "F", "min_score": 0, "max_score": 49.99, "points": 0.0 }
+    ]
+} }
+```
+
+Your screens calculate the sample GPA as the sum of `points` times `credit_hours` over the sum of `credit_hours`, using the `letter_grade` and `credit_hours` from `GET /me/results`, and label it "sample, not official". The API never computes or stores a GPA.
 
 ## 10. New error codes
 
@@ -303,7 +323,8 @@ Recorded automatically (readable with `GET /audit-logs` by `audit.view`): `stude
 | Results and Transcript: `studentIndex`, `programme`, `year` | `data.student.index_number`, `.programme`, `.year_of_study` |
 | Results: `semesters` | `data.semesters` |
 | Transcript: `creditsCompleted` | `credit_hours_total` per semester (we do not decide what counts as completed) |
-| `cumulativeGpa`, `gpaBySemester`, `cumulativeWa`, `waBySemester` | not returned (`meta.gpa` is `null`); compute a sample on your side |
+| `cumulativeGpa`, `gpaBySemester` | not returned; compute a sample on your side from `letter_grade`, `credit_hours` and `GET /grade-scale`, labelled not official |
+| `cumulativeWa`, `waBySemester` (percentage averages) | not returned and never will be for students; remove those cards |
 | Add an account: `name`, `email`, `programme`, `year`, `selectedCourses`; `createdPassword`, `createdIndex` | `POST /students` body; `meta.temporary_password` and `data.index_number` |
 | Registration setup: `formAcademicYear`, `formSemester`, `formOpensAt`, `formClosesAt`, `formAudience` | `semester_id`, `opens_at`, `closes_at`, `audience` |
 | Academics dashboard: Course, Lecturer, Class, Marks entered, Status, Exam date | `course`, `lecturers`, `classes`, `marks_entered_count` of `enrolled_count`, `status`, `exam_date` |
@@ -321,10 +342,11 @@ Recorded automatically (readable with `GET /audit-logs` by `audit.view`): `stude
 - **A8** Students see letter grade and credit hours per released course, no GPA, no weighted average, no percentages.
 - **A9** "Review" means the lecturer reviewing their own draft (the class list with letter-grade preview) before submitting. There is no separate approval step between submit and release.
 - **A10** The letter grade comes from a synthetic demo scale, flagged `is_demo`, not the College's rules.
+- **A11** (agreed 2026-11-21) The grade points in `GET /grade-scale` are a sample so your screens can show a GPA labelled not official; the API does not compute a GPA.
 
 ## 14. Questions for the frontend engineer
 
-1. **(Q1) Who owns user accounts?** Our proposal: your login calls `POST /auth/login` and keeps the token in your server session, so our API is the only user store and your Fortify screens (passkeys, confirm-password) are not used for the demo. Does that work?
+1. **(Q1) Who owns user accounts?** *Proposed and agreed in principle in your last message; please confirm the response shapes in section 1.* Our proposal: your login calls `POST /auth/login` and keeps the token in your server session, so our API is the only user store and your Fortify screens (passkeys, confirm-password) are not used for the demo. Does that work?
 2. **(Q2) Permission names.** Are these final, including the new `results:release`, `registration:self` and `results:view-own`? Where does the Head's release live in your Roles and permissions screen?
 3. **(Q3) Registration.** All or nothing (A3)? Which rejection reasons does your screen need to show?
 4. **(Q4) Windows.** Is the `audience` as a list of programme and year pairs right (your `formAudience`)? Which statuses do you display?

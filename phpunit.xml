@@ -23,6 +23,12 @@
         <env name="APP_ENV" value="testing"/>
         <!-- Tests never depend on the developer's own demo password in .env. -->
         <env name="DEMO_PASSWORD" value="password"/>
+        <!-- Likewise for the tunnel settings: tests never depend on the .env used for a demo. -->
+        <env name="APP_URL" value="http://localhost:8000"/>
+        <env name="APP_DEBUG" value="true"/>
+        <env name="TRUSTED_PROXIES" value=""/>
+        <env name="FRONTEND_URL" value="http://localhost:3000"/>
+        <env name="FRONTEND_ORIGINS" value="https://thescnmtc-lms.fly.dev,http://localhost:3000"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f99306d8-285a-5e34-8217-b3c787d4d68c",
     "name": "LEMS SCNMTC Backend",
-    "description": "LEMS SCNMTC backend API.\n\n1. Import this collection and the 'LEMS local' environment, and select the environment.\n2. Start the API (php artisan serve) and create the demo accounts (php artisan db:seed --class=DemoUsersSeeder). Demo accounts are synthetic and local only.\n3. Send one request from '1. Sign in as...'. The token is saved automatically.\n4. Every request has tests: open the 'Test Results' tab after sending to see green or red.\n5. To check everything at once, run ONLY the folder '9. Automated checks' in the Collection Runner (re-run 'php artisan db:seed --class=DemoUsersSeeder' first if you changed demo passwords).\n\nThe OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins.",
+    "description": "LEMS SCNMTC backend API.\n\n1. Import this collection and the 'LEMS local' environment, and select the environment.\n2. Start the API (php artisan serve) and create the demo accounts (php artisan db:seed --class=DemoUsersSeeder). Demo accounts are synthetic and local only.\n3. Send one request from '1. Sign in as...'. The token is saved automatically.\n4. Every request has tests: open the 'Test Results' tab after sending to see green or red.\n5. To check everything at once, run ONLY the folder '9. Automated checks' in the Collection Runner (re-run 'php artisan db:seed --class=DemoUsersSeeder' first if you changed demo passwords).\n6. For the marks, release and results part of the demo, run ONLY the folder '13. Demo flow end to end' on fresh demo data (php artisan migrate:fresh --seed); submitting marks is permanent.\n\nThe OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -86,6 +86,34 @@
     },
     {
       "key": "my_enrolment_id",
+      "value": ""
+    },
+    {
+      "key": "lect_offering_id",
+      "value": ""
+    },
+    {
+      "key": "enrolment_ids",
+      "value": ""
+    },
+    {
+      "key": "enrolment_1",
+      "value": ""
+    },
+    {
+      "key": "target_index_number",
+      "value": ""
+    },
+    {
+      "key": "target_course_code",
+      "value": ""
+    },
+    {
+      "key": "target_student_email",
+      "value": ""
+    },
+    {
+      "key": "released_at",
       "value": ""
     }
   ],
@@ -3321,7 +3349,7 @@
           ]
         },
         {
-          "name": "A27 Student /me has only the registration permission",
+          "name": "A27 Student /me has only the student permissions",
           "request": {
             "method": "GET",
             "header": [
@@ -3348,7 +3376,7 @@
                 "exec": [
                   "pm.test('status is 200', () => pm.response.to.have.status(200));",
                   "let body = null; try { body = pm.response.json(); } catch (e) {}",
-                  "pm.test('student, registration:self only', () => { pm.expect(body.data.roles).to.eql(['student']); pm.expect(body.data.permissions).to.eql(['registration:self']); });"
+                  "pm.test('student: register and read own results only', () => { pm.expect(body.data.roles).to.eql(['student']); pm.expect(body.data.permissions).to.eql(['registration:self', 'results:view-own']); });"
                 ]
               }
             }
@@ -4804,6 +4832,1954 @@
         }
       ],
       "description": "A scripted walk through the whole demo flow (sign-in, users, registration windows, registering a student, the student registering for courses, password resets, the audit log) with an assertion on every step. In Postman: right-click this folder > Run folder (or use the Runner and select only this folder). All steps should be green. It leaves one invited user, one student and one registration window behind per run. It does not change any demo password."
+    },
+    {
+      "name": "10. Marks (sign in as lecturer first)",
+      "item": [
+        {
+          "name": "My courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings"
+              ]
+            },
+            "description": "Sign in as lecturer (folder 1) first. Needs courses:teach. Shows only the courses the lecturer is assigned to, for the current semester. Saves the first course that has students."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('only my courses, with counts and a status', () => { pm.expect(body.data.length).to.be.above(0); pm.expect(body.data[0]).to.have.property('enrolled_count'); pm.expect(['not_started', 'draft', 'submitted', 'released']).to.include(body.data[0].status); });",
+                  "const c = body.data.find(o => o.enrolled_count > 0); if (c) pm.collectionVariables.set('lect_offering_id', c.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Class list and review",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "description": "The review screen: every registered student with the saved mark and a letter grade preview."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('students with state and letter preview', () => { pm.expect(body.data.students.length).to.be.above(0); pm.expect(body.data.assessment.name).to.eql('Overall'); pm.expect(body.data.grading.is_demo).to.eql(true); });",
+                  "pm.collectionVariables.set('enrolment_ids', JSON.stringify(body.data.students.map(s => s.enrolment_id)));",
+                  "pm.collectionVariables.set('enrolment_1', body.data.students[0].enrolment_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save draft marks (all but the last student)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Saves a mark for every student except the last, so the next request can show marks_incomplete. A score is 0 to 100 with up to 2 decimals; null clears a draft mark."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ids = JSON.parse(pm.collectionVariables.get('enrolment_ids') || '[]');",
+                  "const scores = [75, 92, 63, 55, 41, 88, 70, 66, 59, 81];",
+                  "pm.request.body.update(JSON.stringify({ marks: ids.slice(0, Math.max(ids.length - 1, 1)).map((id, i) => ({ enrolment_id: id, score: scores[i % scores.length] })) }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('draft saved', () => { pm.expect(body.data.summary.entered).to.be.above(0); pm.expect(body.data.offering.status).to.eql('draft'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit marks (refused while one is missing)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks",
+                "submit"
+              ]
+            },
+            "description": "Only works when every registered student has a mark. If the course has a single student this request is accepted instead and LOCKS the marks."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is marks_incomplete', () => pm.expect(body && body.code).to.eql('marks_incomplete'));",
+                  "pm.test('says who is missing', () => pm.expect(body.errors.marks.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save the last mark",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ids = JSON.parse(pm.collectionVariables.get('enrolment_ids') || '[]');",
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: ids[ids.length - 1], score: 68.5 }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('nobody missing', () => pm.expect(body.data.summary.missing).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit marks (LOCKS them)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks",
+                "submit"
+              ]
+            },
+            "description": "After this the marks cannot be changed by anyone: a save answers 423 grade_locked and a second submit 409 already_submitted. To try the flow again, reset the demo data (see docs/api-testing-postman.md)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('submitted', () => pm.expect(body.data.status).to.eql('submitted'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save after submitting is locked",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": [\n    {\n      \"enrolment_id\": \"{{enrolment_1}}\",\n      \"score\": 99\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 423', () => pm.response.to.have.status(423));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is grade_locked', () => pm.expect(body && body.code).to.eql('grade_locked'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. Release (sign in as head_of_academics first)",
+      "item": [
+        {
+          "name": "Mark entry by course",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings?",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Sign in as head_of_academics (folder 1) first. Needs academics:dashboard:view. Filters: status, semester, department. meta.summary counts each status."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('courses with lecturers and a summary', () => { pm.expect(body.data.length).to.be.above(0); pm.expect(body.meta.summary).to.have.all.keys('not_started', 'draft', 'submitted', 'released'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submitted marks of the course (review)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "results"
+              ]
+            },
+            "description": "Uses the course saved in folder 10. 409 not_submitted until the lecturer has submitted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('staff see scores', () => pm.expect(body.data.students[0].score).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Release the course's results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/release",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "release"
+              ]
+            },
+            "description": "Needs results:release (head_of_academics, super_admin). Per course; cannot be undone. Releasing again answers 200 with the same data."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('released', () => { pm.expect(body.data.status).to.eql('released'); pm.expect(body.data.released_at).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. My results and the grade scale (sign in as a student first)",
+      "item": [
+        {
+          "name": "The grade scale",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-scale",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "grade-scale"
+              ]
+            },
+            "description": "Any signed-in user. The points are a sample so a screen can show a GPA labelled not official."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('synthetic and not official', () => { pm.expect(body.data.is_demo).to.eql(true); pm.expect(body.data.official).to.eql(false); pm.expect(body.data.bands.length).to.eql(5); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My released results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "results"
+              ]
+            },
+            "description": "Needs results:view-own. Only released courses appear. Never a numeric mark, percentage or GPA."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('letters and credit hours only', () => { pm.expect(body.data.semesters).to.be.an('array'); const t = JSON.stringify(body.data).toLowerCase(); pm.expect(t).to.not.include('\"score\"'); pm.expect(t).to.not.include('gpa'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13. Demo flow end to end (run once on fresh demo data)",
+      "item": [
+        {
+          "name": "C01 Sign in as the lecturer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"lecturer@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C02 My courses: pick a course that has students and no marks yet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const c = body.data.find(o => o.status === 'not_started' && o.enrolled_count > 0);",
+                  "pm.test('a course ready for marks (if none, reset the demo data: php artisan migrate:fresh --seed)', () => pm.expect(c).to.not.equal(undefined));",
+                  "if (c) { pm.collectionVariables.set('lect_offering_id', c.id); pm.collectionVariables.set('target_course_code', c.course.code); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C03 Class list: everyone is missing a mark",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('all enrolled, none entered', () => { pm.expect(body.data.summary.entered).to.eql(0); pm.expect(body.data.summary.missing).to.eql(body.data.summary.enrolled); });",
+                  "pm.collectionVariables.set('enrolment_ids', JSON.stringify(body.data.students.map(s => s.enrolment_id)));",
+                  "pm.collectionVariables.set('target_index_number', body.data.students[0].student.index_number);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C04 Save drafts for all but the last student (the first gets 75)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ids = JSON.parse(pm.collectionVariables.get('enrolment_ids') || '[]');",
+                  "const scores = [75, 92, 63, 55, 41, 88, 70, 66, 59, 81];",
+                  "pm.request.body.update(JSON.stringify({ marks: ids.slice(0, Math.max(ids.length - 1, 1)).map((id, i) => ({ enrolment_id: id, score: scores[i % scores.length] })) }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('draft, first student B preview', () => { pm.expect(body.data.offering.status).to.eql('draft'); pm.expect(body.data.students[0].score).to.eql(75); pm.expect(body.data.students[0].letter_grade).to.eql('B'); pm.expect(body.data.students[0].state).to.eql('draft'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C05 A bad score saves nothing",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": [\n    {\n      \"enrolment_id\": \"{{enrolment_1}}\",\n      \"score\": 101\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: JSON.parse(pm.collectionVariables.get('enrolment_ids'))[0], score: 101 }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is validation_failed', () => pm.expect(body && body.code).to.eql('validation_failed'));",
+                  "pm.test('error on the score', () => pm.expect(body.errors).to.have.property('marks.0.score'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C06 Submit is refused while a student has no mark",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks",
+                "submit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is marks_incomplete', () => pm.expect(body && body.code).to.eql('marks_incomplete'));",
+                  "pm.test('names the missing student', () => pm.expect(body.errors.marks.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C07 Save the last mark",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ids = JSON.parse(pm.collectionVariables.get('enrolment_ids') || '[]');",
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: ids[ids.length - 1], score: 68.5 }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('nobody missing', () => pm.expect(body.data.summary.missing).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C08 Submit: the marks lock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks",
+                "submit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('submitted', () => { pm.expect(body.data.status).to.eql('submitted'); pm.expect(body.data.marks_count).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C09 Changing a submitted mark is refused (423)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: JSON.parse(pm.collectionVariables.get('enrolment_ids'))[0], score: 99 }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 423', () => pm.response.to.have.status(423));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is grade_locked', () => pm.expect(body && body.code).to.eql('grade_locked'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C10 Clearing a submitted mark is refused (423)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: JSON.parse(pm.collectionVariables.get('enrolment_ids'))[0], score: null }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 423', () => pm.response.to.have.status(423));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is grade_locked', () => pm.expect(body && body.code).to.eql('grade_locked'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C11 Submitting twice is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks",
+                "submit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 409', () => pm.response.to.have.status(409));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is already_submitted', () => pm.expect(body && body.code).to.eql('already_submitted'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C12 The lecturer cannot release results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/release",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "release"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C13 Sign in as head_of_academics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C14 The head cannot enter marks",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings/{{lect_offering_id}}/marks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "marks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.body.update(JSON.stringify({ marks: [{ enrolment_id: JSON.parse(pm.collectionVariables.get('enrolment_ids'))[0], score: 50 }] }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C15 Dashboard: the course shows as submitted",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings?status=submitted&per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "submitted",
+                  "disabled": false
+                },
+                {
+                  "key": "per_page",
+                  "value": "100",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('our course is submitted, with its lecturer', () => { const c = body.data.find(o => o.id === pm.collectionVariables.get('lect_offering_id')); pm.expect(c).to.not.equal(undefined); pm.expect(c.status).to.eql('submitted'); pm.expect(c.lecturers.length).to.be.above(0); pm.expect(body.meta.summary.submitted).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C16 Review: the head sees the scores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "results"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('scores and stored letters', () => { pm.expect(body.data.students[0].score).to.eql(75); pm.expect(body.data.students[0].letter_grade).to.eql('B'); pm.expect(body.data.students[0].state).to.eql('submitted'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C17 Find the first student's account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students?q={{target_index_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{target_index_number}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('one student', () => pm.expect(body.data.length).to.eql(1));",
+                  "pm.collectionVariables.set('target_student_email', body.data[0].user.email);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C18 Sign in as that student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C19 Before release the student sees nothing of this course",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "results"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('course not shown yet', () => { const codes = body.data.semesters.flatMap(s => s.courses.map(c => c.code)); pm.expect(codes).to.not.include(pm.collectionVariables.get('target_course_code')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C20 Sign in as head_of_academics again",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C21 Release the course's results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/release",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "release"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('released', () => { pm.expect(body.data.status).to.eql('released'); pm.collectionVariables.set('released_at', body.data.released_at); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C22 Releasing again changes nothing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings/{{lect_offering_id}}/release",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings",
+                "{{lect_offering_id}}",
+                "release"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('same release time', () => pm.expect(body.data.released_at).to.eql(pm.collectionVariables.get('released_at')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C23 Sign in as the student again",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C24 The student sees a letter grade and credit hours",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/results",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "results"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('B for the course, credit hours a number', () => { const c = body.data.semesters.flatMap(s => s.courses).find(x => x.code === pm.collectionVariables.get('target_course_code')); pm.expect(c).to.not.equal(undefined); pm.expect(c.letter_grade).to.eql('B'); pm.expect(c.credit_hours).to.be.a('number'); });",
+                  "pm.test('never a mark, percentage or GPA', () => { const t = pm.response.text().toLowerCase(); pm.expect(t).to.not.include('\"score\"'); pm.expect(t).to.not.include('percent'); pm.expect(t).to.not.include('average'); pm.expect(t).to.not.include('\"gpa\"'); pm.expect(body.data.grading.official).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C25 The student can read the grade scale to work out a sample GPA",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-scale",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "grade-scale"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('five bands with points, not official', () => { pm.expect(body.data.bands.length).to.eql(5); pm.expect(body.data.bands[0].points).to.eql(4); pm.expect(body.data.official).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C26 A student cannot reach staff marks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/lecturer/course-offerings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "lecturer",
+                "course-offerings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C27 A student cannot reach the dashboard or release",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/academics/course-offerings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "academics",
+                "course-offerings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C28 Sign in as super_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "C29 The audit log has the submission and the release, and no marks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs?per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "100",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('both events recorded', () => { const e = body.data.map(x => x.event); pm.expect(e).to.include('marks.submitted'); pm.expect(e).to.include('results.released'); });",
+                  "pm.test('no scores in the trail', () => { const t = pm.response.text(); pm.expect(t).to.not.include('68.5'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Registration is in folder 9. This folder walks the rest of the Monday demo with an assertion on every step: the lecturer saves and submits marks (and the lock refuses changes), the Head of Academics reviews and releases, the student sees a letter grade and credit hours only. It uses the seeded demo accounts and the first of lecturer@demo.test's courses that has students and no marks. Submitting is permanent, so to run it again reset the demo data first: php artisan migrate:fresh --seed (local database only)."
     }
   ]
 }

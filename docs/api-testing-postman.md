@@ -51,7 +51,11 @@ The demo accounts are synthetic and exist only locally. All of them use the pass
 | 6. Registration windows | List, open and close a window (head_of_academics or super_admin) |
 | 7. Students (staff) | List, show and register a student; issue a temporary password (registrar, ict_admin or super_admin) |
 | 8. My registration | A student's own record, registration status, eligible courses, register and withdraw (sign in as a student first) |
-| 9. Automated checks | A scripted walk through the whole flow, 60 steps, each with assertions |
+| 9. Automated checks | A scripted walk through sign-in, users, registration windows, registering a student, the student registering for courses, password resets and the audit log, 60 steps, each with assertions. Can be run again and again |
+| 10. Marks | The lecturer's side by hand: my courses, class list, save drafts, submit (locks), save after submitting (423). Sign in as the lecturer first |
+| 11. Release | The Head of Academics by hand: mark entry by course, review submitted marks, release. Sign in as head_of_academics first, after folder 10 |
+| 12. My results and the grade scale | The grade scale and a student's released results. Sign in as a student first |
+| 13. Demo flow end to end | A scripted walk through the rest of the Monday demo, 29 steps: lecturer saves and submits, the lock refuses changes, the Head reviews and releases, the student sees a letter grade and credit hours only. Submitting is permanent, so run it once per fresh seed (see below) |
 
 Every request carries tests. After you send one, open the **Test Results** tab: green means the answer was what the contract promises (status code and shape). Red means something is wrong. Each request's **Description** says what it does and which permission it needs.
 
@@ -123,11 +127,14 @@ These two cannot be in the one-click run because the token only exists inside th
 | Check | Expected |
 |---|---|
 | Folder 9 | 60 requests, 0 failed |
+| Folder 13 (on fresh demo data) | 29 requests, 0 failed |
 | Folders 0, 1 | All green (every demo account signs in) |
 | Folders 3, 4, 5, 6, 7 as `super_admin` | All green |
+| Folder 10 as `lecturer@demo.test`, then folder 11 as `head_of_academics@demo.test` | All green |
+| Folder 12 as `student@demo.test` | All green (the demo student has nothing released, so the list is empty) |
 | Folder 8 as `student@demo.test` | All green |
 | Part 5, both flows | Accept invitation 200 then 422; reset 200 |
-| `composer ci` | Pint, Larastan and all Pest tests pass (398 at the time of writing) |
+| `composer ci` | Pint, Larastan and all Pest tests pass (455 at the time of writing) |
 
 ## Part 7 - Command line (optional)
 
@@ -141,17 +148,25 @@ npx newman@6.2.1 run docs/api/postman/lems-backend.postman_collection.json `
 
 It prints each request and a final table. **Expect** `failed` to be 0 everywhere.
 
+## Running the marks flow again (reset the demo data)
+
+Submitting marks locks them for good, and that is the point. To rehearse the flow again, rebuild the local demo data from scratch and run folder 13 on it:
+
+```
+php artisan migrate:fresh --seed
+```
+
+This deletes everything in the local `lems_backend` database and recreates the synthetic demo accounts and data. Only ever run it on your own laptop, never on a shared or real database. After it, the demo passwords are `password` again and folders 9 and 13 can be run once each (folder 9 can be repeated; folder 13 cannot until the next reset).
+
 ## Last verified
 
-2026-11-20, on the `phase-1/registration` branch:
+2026-11-21, on the `phase-1/marks` branch:
 
 | Layer | Result |
 |---|---|
-| Automated tests (`composer ci`) | 398 passed, Pint and Larastan clean |
-| Live end-to-end script against a running API (148 checks: routing, CORS, every role, invitations, passwords, lockout, audit) | 148 passed |
-| Postman collection run with Newman | Folder 9: 60 requests, 122 assertions, 0 failed (twice in a row). Folders 0 to 8 also 0 failed |
-
-Findings from earlier rounds that are now fixed: login reported `expires_at: null` although tokens expire after 12 hours; the API did not trust a tunnel's forwarded headers (now `TRUSTED_PROXIES`).
+| Automated tests (`composer ci`) | 455 passed, Pint and Larastan clean |
+| Postman collection run with Newman against a running API on a freshly seeded scratch database | Folder 9: 60 requests, 122 assertions, 0 failed. Folder 13: 29 requests, 68 assertions, 0 failed. Folders 10 to 12 by role: 15 requests, 34 assertions, 0 failed |
+| Earlier rounds | The 148-check live script (routing, CORS, every role, invitations, passwords, lockout, audit) passed on 2026-11-20 and is not yet extended to marks |
 
 ## If something goes wrong
 

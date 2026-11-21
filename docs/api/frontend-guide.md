@@ -85,7 +85,11 @@ Codes you should handle:
 | 422 | `registration_closed` | No registration window is open for the student |
 | 422 | `idempotency_key_reused` | You sent the same `Idempotency-Key` for a different request; use a fresh key |
 | 409 | `request_in_progress` | The same `Idempotency-Key` is still being processed; wait and retry with the same key |
-| 423 | `grade_locked` | Marks were already submitted and are locked (arrives with the marks endpoints) |
+| 423 | `grade_locked` | Marks were already submitted and are locked; nothing can change them |
+| 422 | `marks_incomplete` | Submitting while a registered student has no mark; `errors.marks` lists who |
+| 409 | `already_submitted` | The course's marks were already submitted |
+| 409 | `not_submitted` | Reviewing or releasing a course whose marks are not submitted yet |
+| 409 | `no_grade_scale` | No grade scale is active, so letter grades cannot be given |
 | 429 | `too_many_requests` | Wait the number of seconds in the `Retry-After` header. Login locks an email for 15 minutes after 5 failed tries. |
 | 500 | `server_error` | Show a generic "something went wrong". |
 
@@ -96,6 +100,10 @@ Send a header `Idempotency-Key: <a fresh UUID>` on every `POST`, `PUT` or `DELET
 ## Registration endpoints
 
 Registration windows, registering students, a student's own course registration and the reference lists (departments, programmes, cohorts, semesters, courses on offer) are described in `docs/api/demo-contract.md` and are in the OpenAPI document.
+
+## Marks, release and results
+
+Lecturer: `GET /lecturer/course-offerings`, `GET` and `PUT /lecturer/course-offerings/{id}/marks`, `POST .../marks/submit` (locks). Head of Academics: `GET /academics/course-offerings`, `GET .../results`, `POST .../release`. Student: `GET /me/results` (letter grade and credit hours only, never a mark, percentage or GPA). `GET /grade-scale` gives the letters, bands and sample points so the frontend can show a GPA labelled "sample, not official". Field shapes and rules: `docs/api/demo-contract.md` sections 7 to 9; every endpoint is in the OpenAPI document.
 
 ## Lists
 

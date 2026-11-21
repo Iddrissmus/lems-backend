@@ -1,6 +1,6 @@
 # API contract for the demo flow (DRAFT v0)
 
-**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. **Built and tested (2026-11-20): sections 3 to 6** (reference data, registration windows, staff registering students and password resets, the student's own course registration) and the `Idempotency-Key` rule, on the branch `phase-1/registration`. **Not built yet: sections 7 to 9** (lecturer marks, release, student results); they are being built now on the branch `phase-1/marks` and this page is the proposed freeze for them. **Agreed on 2026-11-21 (owner, see ADR 0012):** password-only sign-in through our API for Monday (no passkeys or 2FA), one Overall mark per course, colon-style permission names, and sample GPA calculated by the frontend from `GET /grade-scale`. Sign-in, users, roles and the audit log (section 1) were already built. Where a built endpoint differs from what this draft first said, the text says "As built". After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
+**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. **Built and tested (2026-11-20): sections 3 to 6** (reference data, registration windows, staff registering students and password resets, the student's own course registration) and the `Idempotency-Key` rule, on the branch `phase-1/registration`. **Also built and tested (2026-11-21): sections 7 to 9** (lecturer marks, release, student results, the grade scale), on the branch `phase-1/marks`; this page is the proposed freeze for them. **Agreed on 2026-11-21 (owner, see ADR 0012):** password-only sign-in through our API for Monday (no passkeys or 2FA), one Overall mark per course, colon-style permission names, and sample GPA calculated by the frontend from `GET /grade-scale`. Sign-in, users, roles and the audit log (section 1) were already built. Where a built endpoint differs from what this draft first said, the text says "As built". After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
 
 **The flow it covers:** staff register a student, the student registers for courses, the lecturer enters, reviews and submits marks, the Head of Academics releases them, the student sees letter grades.
 
@@ -182,6 +182,8 @@ Reasons, each as a human sentence in `errors` (the frontend shows them as your `
 
 A lecturer sees only offerings they are assigned to. **One mark per student per course, called Overall, out of 100. (A5, Q5)**
 
+**As built:** a course that is not yours answers 404 (also for `super_admin`: these routes are strictly for the assigned lecturer), and a role without the permission answers 403 first. `GET /lecturer/course-offerings` defaults to the current semester; `?semester=` takes a semester id and `?status=` is not applied here. Withdrawn students are not in the class list. The "Overall" assessment is created the first time a course's marks are read or saved, so a course never needs setting up by hand. Students are listed in index number order.
+
 | Request | Permission | Notes |
 |---|---|---|
 | `GET /lecturer/course-offerings` | `courses:teach` | My courses, with status |
@@ -236,7 +238,7 @@ Submit, `POST .../marks/submit` (no body): every registered student must have a 
 { "data": { "offering_id": "...", "status": "submitted", "submitted_at": "2026-12-16T10:05:00+00:00", "marks_count": 7 } }
 ```
 
-Submitting again answers 409 `already_submitted` (or, with the same `Idempotency-Key`, replays the first answer). Not a lecturer of the course: 404.
+Submitting again answers 409 `already_submitted` (or, with the same `Idempotency-Key`, replays the first answer). Not a lecturer of the course: 404. **As built:** a course with no registered students answers 422 `marks_incomplete` (nothing to submit); each missing student is a sentence in `errors.marks`, for example `RGN/2026/0003 (Yaw Boateng) has no mark.`; with no active grade scale the answer is 409 `no_grade_scale`. A `PUT` accepts at most 500 rows, each `enrolment_id` once. Clearing (`score: null`) deletes the draft row; a submitted mark can never be cleared (423). The database refuses a change to a submitted mark even if some future code tried (trigger), and the API turns that refusal into the same 423 `grade_locked`.
 
 ## 8. Head of Academics: dashboard and release
 
@@ -246,7 +248,7 @@ Submitting again answers 409 `already_submitted` (or, with the same `Idempotency
 | `GET /academics/course-offerings/{id}/results` | `academics:dashboard:view` | The submitted marks with scores, for review before release |
 | `POST /academics/course-offerings/{id}/release` | `results:release` | Release the course's results to students. 200 |
 
-`GET .../results` returns the section 7 class list shape (staff see `score`). `POST .../release` (no body): the course must be `submitted`, otherwise 409 `not_submitted`. On success `released_at` and the releaser are recorded, students can now see their grades, and the answer is 200 `{ data: { offering_id, status: "released", released_at } }`. Releasing a released course answers 200 with the same data (idempotent). **Release is per course. (A7, Q7)**
+**As built:** the dashboard defaults to the current semester (`?semester=` takes a semester id, `?department=` a department id, `?status=` one of the four statuses, `?per_page=` up to 100); `meta.summary` counts the courses in each status for that semester and department, ignoring the status filter. `academic_affairs` can read the dashboard and the submitted marks but cannot release; only `results:release` (head_of_academics and super_admin) can. `GET .../results` answers 409 `not_submitted` while the lecturer has not submitted, so the Head never sees drafts. `GET .../results` returns the section 7 class list shape (staff see `score`). `POST .../release` (no body): the course must be `submitted`, otherwise 409 `not_submitted`. On success `released_at` and the releaser are recorded, students can now see their grades, and the answer is 200 `{ data: { offering_id, status: "released", released_at } }`. Releasing a released course answers 200 with the same data (idempotent). **Release is per course. (A7, Q7)**
 
 ## 9. Student results
 
@@ -269,7 +271,7 @@ Submitting again answers 409 `already_submitted` (or, with the same `Idempotency
 }
 ```
 
-Only released courses appear; a submitted but unreleased course does not. **No numeric marks, no percentages, no weighted average.** Your screen computes a sample GPA from `letter_grade` and `credit_hours` using the points in `GET /grade-scale` (below) and labels it not official. `semesters` is empty when nothing is released. Resit results are not part of Monday. **(A8, Q8, Q9)**
+Only released courses appear; a submitted but unreleased course does not. **As built:** `meta` carries only a `note`; `data.grading.official` is always `false`; courses are ordered by semester start date and then course code; a withdrawn registration never appears; an account with the permission but no student record gets 404. **No numeric marks, no percentages, no weighted average.** Your screen computes a sample GPA from `letter_grade` and `credit_hours` using the points in `GET /grade-scale` (below) and labels it not official. `semesters` is empty when nothing is released. Resit results are not part of Monday. **(A8, Q8, Q9)**
 
 ### Authorised correction (stretch, after the flow works)
 

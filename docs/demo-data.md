@@ -28,7 +28,7 @@ It is safe to run again: nothing is duplicated. To start from nothing (this **de
 | Students | 41 | `student.001` to `student.040@demo.test` and `student@demo.test`. Names are randomly combined, never real people. Index numbers look like `RGN/2025/0003` (a placeholder format until the College confirms its own) |
 | Registrations (enrolments) | about 66 | Each student is registered for their programme's courses for their year in semester 1 |
 | Registration window | 1 | Open for semester 1 from two weeks ago to 30 days from now (so registering works whenever you load it) |
-| Grade scale | 1 | "Demo scale (synthetic, not the College rules)": A 80-100, B 70-79.99, C 60-69.99, D 50-59.99, F 0-49.99. No GPA points. Marked `is_demo` |
+| Grade scale | 1 | "Demo scale (synthetic, not the College rules)": A 80-100, B 70-79.99, C 60-69.99, D 50-59.99, F 0-49.99, with sample points 4, 3, 2, 1, 0 so the frontend can show a GPA labelled "sample, not official" (ADR 0012). Marked `is_demo`; the API never computes a GPA |
 
 All demo accounts use the password `password`, except `first-login@demo.test`, which must change it at first sign-in (see `docs/api-testing-postman.md`).
 

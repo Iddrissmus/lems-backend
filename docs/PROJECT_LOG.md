@@ -217,3 +217,13 @@
 **Finding:** the tunnel adds about 1 second to every call (connect 0.2 s, TLS 0.45 s, the rest travelling to the laptop and back); local calls take about 0.1 s. A portal page that makes several calls will feel slow; recorded in `docs/demo.md`. Not an API fault.
 **Needs owner:** the frontend engineer's reply (nothing from him yet); merge the `phase-1/demo-setup` pull request; push approval for the commit added after it; keep ngrok, `artisan serve`, MySQL and the laptop awake until the demo.
 **Next:** when he is online, a joint sign-in test and then the whole flow; rehearse once from `docs/demo.md` and reset with `php artisan migrate:fresh --seed`; restore the old `.env` values after the demo.
+
+### 2026-11-21 - Tunnel rehearsal, reset and handover drafts
+**Branch:** `phase-1/handover-docs` (from `main`, which now includes `phase-1/demo-setup`, PR #7) | **Phase:** 1 - Foundation (Slice 0 demo due 2026-11-23)
+**Done (owner said go):**
+- Rehearsal through the public tunnel on the real demo data: the whole 29-step flow (lecturer saves and submits, the lock refuses changes, the Head reviews and releases, the student sees a letter grade) passed, 68 assertions, 0 failures, about 40 seconds (about 1.3 s per call through ngrok).
+- Then reset the local database with `php artisan migrate:fresh --seed` (checked first: only demo accounts existed) and confirmed over the tunnel that it is clean: no marks submitted or released, 41 students, 9 courses not started, window open. The sweep leaves a few sign-in audit rows; one more reset before presenting clears them.
+- Wrote the three operations drafts that `docs/handover-checklist.md` listed as todo: `docs/deployment.md`, `docs/runbook.md`, `docs/data-protection.md`. Checked their factual statements against the code (readiness returns 503 when unhealthy, disabling and resetting revoke tokens, the last super admin is protected, `route:cache` and `event:cache` work, `/docs` is refused in production, `composer audit` finds nothing). Checklist updated.
+**Decided:** none. Open and recorded in the documents: hosting and database engine (D2, ADR 0006), the data-protection decisions in `docs/data-protection.md` section 6 (lawful basis, retention, requests, breach procedure, storage location), sizing against the 4-hour recovery time.
+**Needs owner:** the frontend engineer's reply (nothing yet); review the three drafts (they are drafts, not legal advice); keep the tunnel and laptop up until the demo.
+**Next:** when he is online, a joint sign-in test and then the whole flow; decide by Sunday midday whether to build the fallback demo page; one last `migrate:fresh --seed` before presenting; restore the old `.env` values after the demo.

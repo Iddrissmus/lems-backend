@@ -46,17 +46,23 @@ describe('/me', function () {
             ->assertJsonPath('data.permissions', Permission::values());
     });
 
-    it('gives a student only the permission to register for courses', function () {
+    it('gives a student the permissions to register for courses and read their own results', function () {
         actingAsRole(Role::Student);
 
-        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', ['registration:self']);
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', ['registration:self', 'results:view-own']);
     });
 
-    it('gives a lecturer and a bursar no permissions yet', function (Role $role) {
-        actingAsRole($role);
+    it('gives a lecturer the permissions to teach, enter and submit marks', function () {
+        actingAsRole(Role::Lecturer);
+
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', ['courses:teach', 'marks:enter', 'marks:submit']);
+    });
+
+    it('gives a bursar no permissions yet', function () {
+        actingAsRole(Role::Bursar);
 
         $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', []);
-    })->with([Role::Lecturer, Role::Bursar]);
+    });
 });
 
 describe('roles list', function () {
@@ -103,8 +109,16 @@ it('gives head_of_academics and ict_admin the account-management permissions, pl
         ->and($ict->all())->toContain('accounts:create', 'accounts:reset-password', 'students:view')->not->toContain('registration:manage');
 });
 
-it('keeps lecturer, bursar and others free of academic permissions until their modules exist', function () {
-    expect(Role::Lecturer->permissions())->toBe([])
-        ->and(Role::Bursar->permissions())->toBe([])
-        ->and(collect(Role::AcademicAffairs->permissions())->map->value->all())->toBe(['students:view']);
+it('keeps the bursar free of academic permissions until their module exists, and gives the others only what they need', function () {
+    expect(Role::Bursar->permissions())->toBe([])
+        ->and(collect(Role::Lecturer->permissions())->map->value->all())->toBe(['courses:teach', 'marks:enter', 'marks:submit'])
+        ->and(collect(Role::AcademicAffairs->permissions())->map->value->all())->toBe(['students:view', 'academics:dashboard:view'])
+        ->and(collect(Role::HeadOfAcademics->permissions())->map->value->all())->toContain('academics:dashboard:view', 'results:release')
+        ->and(collect(Role::Student->permissions())->map->value->all())->toBe(['registration:self', 'results:view-own']);
+});
+
+it('lets only the head of academics release results', function () {
+    $holders = collect(Role::cases())->filter(fn (Role $role) => in_array(Permission::ResultsRelease, $role->permissions(), true));
+
+    expect($holders->map->value->values()->all())->toBe(['head_of_academics']);
 });

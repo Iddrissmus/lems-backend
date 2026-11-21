@@ -31,9 +31,9 @@ class ErrorEnvelopeDocumentation implements DocumentTransformer
         403 => 'Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)',
         404 => 'Not found. code: not_found',
         405 => 'Method not allowed. code: method_not_allowed',
-        409 => 'Conflicts with the current state. code: conflict (or last_super_admin, request_in_progress)',
-        422 => 'Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)',
-        423 => 'Marks already submitted are locked. code: grade_locked',
+        409 => 'Conflicts with the current state. code: conflict (or last_super_admin, request_in_progress, already_submitted, not_submitted, no_grade_scale)',
+        422 => 'Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)',
+        423 => 'Marks already submitted are locked; only an authorised correction can change them. code: grade_locked',
         429 => 'Too many requests; wait `Retry-After` seconds. code: too_many_requests',
         500 => 'Server error, nothing leaked. code: server_error',
     ];

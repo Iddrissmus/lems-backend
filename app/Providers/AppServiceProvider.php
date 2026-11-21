@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
 use App\Domain\Identity\Enums\Permission;
+use App\Models\CourseOffering;
 use App\Models\Enrolment;
 use App\Models\PersonalAccessToken;
 use App\Models\RegistrationWindow;
@@ -67,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
             'student' => StudentProfile::class,
             'enrolment' => Enrolment::class,
             'registration_window' => RegistrationWindow::class,
+            'course_offering' => CourseOffering::class,
         ]);
 
         // Every domain event that matters becomes an audit entry.
@@ -83,6 +85,9 @@ class AppServiceProvider extends ServiceProvider
         // A student working on their own registration. The record itself is found from the
         // signed-in user, so there is nothing in the URL to tamper with.
         Gate::define('selfRegister', fn (User $user) => $user->can(Permission::RegistrationSelf->value));
+
+        // A student reading their own released results (the record comes from the signed-in user).
+        Gate::define('viewOwnResults', fn (User $user) => $user->can(Permission::ResultsViewOwn->value));
 
         // Reference data (departments, programmes, courses on offer...) is for anyone
         // who works with students or registration. super_admin passes through Gate::before.

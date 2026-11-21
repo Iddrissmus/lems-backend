@@ -27,6 +27,16 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - Audit events `registration_window.created`, `registration_window.closed`, `student.registered`, `enrolment.created`, `enrolment.withdrawn`, `user.password_reset_by_admin`. Passwords are never recorded.
 - Error codes `registration_rejected`, `registration_closed`, `idempotency_key_reused`, `request_in_progress`; the error format can now carry field errors together with its own code.
 - Postman: four new folders and 25 more steps in the one-click folder (now 60).
+- Marks, release and results (docs/api/demo-contract.md sections 7 to 9): a lecturer's courses, class list with letter grade preview, draft marks, and submit (the marks lock, letter grades are stored with the scale used); the Head of Academics' dashboard by course, review of submitted marks and per-course release; a student's own released results (letter grade and credit hours only); `GET /grade-scale`.
+- Permissions `courses:teach`, `marks:enter`, `marks:submit`, `academics:dashboard:view`, `results:release`, `results:view-own`, given to roles as proposed in the contract.
+- Audit events `marks.submitted` and `results.released` (facts only, never the marks).
+- Error codes `marks_incomplete`, `already_submitted`, `not_submitted`, `no_grade_scale`; a write that reaches the database lock trigger is answered `423 grade_locked`.
+- Postman: folders 10 to 12 (by hand) and folder 13, a 29-step scripted run of the lecturer, Head and student flow.
+- ADR 0012: sign-in, one Overall mark, colon-style permissions and the sample GPA from the frontend.
+
+### Changed
+- The demo grade scale now carries sample points (4, 3, 2, 1, 0) so a sample GPA can be shown; the API still never computes one.
+- Test runs use up to 512M of PHP memory (the suite outgrew the 128M default).
 
 ### Fixed
 - Login reported `expires_at: null` although tokens expire after 12 hours (Sanctum enforced it silently). The expiry is now stored on the token and returned.

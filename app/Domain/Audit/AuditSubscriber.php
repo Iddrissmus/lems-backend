@@ -4,8 +4,10 @@ namespace App\Domain\Audit;
 
 use App\Domain\Academics\Events\EnrolmentCreated;
 use App\Domain\Academics\Events\EnrolmentWithdrawn;
+use App\Domain\Academics\Events\MarksSubmitted;
 use App\Domain\Academics\Events\RegistrationWindowClosed;
 use App\Domain\Academics\Events\RegistrationWindowCreated;
+use App\Domain\Academics\Events\ResultsReleased;
 use App\Domain\Academics\Events\StudentRegistered;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Enums\UserStatus;
@@ -55,6 +57,8 @@ class AuditSubscriber
         $events->listen(EnrolmentCreated::class, $this->onEnrolmentCreated(...));
         $events->listen(EnrolmentWithdrawn::class, $this->onEnrolmentWithdrawn(...));
         $events->listen(UserPasswordResetByAdmin::class, $this->onPasswordResetByAdmin(...));
+        $events->listen(MarksSubmitted::class, $this->onMarksSubmitted(...));
+        $events->listen(ResultsReleased::class, $this->onResultsReleased(...));
     }
 
     /** Resolved per call (not injected) so it stays swappable and Octane-safe. */
@@ -162,6 +166,25 @@ class AuditSubscriber
     private function onEnrolmentWithdrawn(EnrolmentWithdrawn $e): void
     {
         $this->audit()->record(AuditEvent::EnrolmentWithdrawn, $e->actor, $e->enrolment, $this->enrolmentFacts($e->enrolment), ['status' => 'withdrawn']);
+    }
+
+    private function onMarksSubmitted(MarksSubmitted $e): void
+    {
+        // Facts only: which course, how many marks, which scale. Never the marks themselves.
+        $this->audit()->record(AuditEvent::MarksSubmitted, $e->actor, $e->offering, after: [
+            'course' => $e->offering->course->code,
+            'marks_count' => $e->marksCount,
+            'grade_scale' => $e->scale->name,
+            'submitted_at' => $e->offering->marks_submitted_at?->toIso8601String(),
+        ]);
+    }
+
+    private function onResultsReleased(ResultsReleased $e): void
+    {
+        $this->audit()->record(AuditEvent::ResultsReleased, $e->actor, $e->offering, ['released_at' => null], [
+            'course' => $e->offering->course->code,
+            'released_at' => $e->offering->results_released_at?->toIso8601String(),
+        ]);
     }
 
     private function onPasswordResetByAdmin(UserPasswordResetByAdmin $e): void

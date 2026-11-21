@@ -34,6 +34,18 @@
         },
         {
             "name": "Health"
+        },
+        {
+            "name": "Marks (lecturers)"
+        },
+        {
+            "name": "Academics dashboard and release"
+        },
+        {
+            "name": "My results (students)"
+        },
+        {
+            "name": "Grade scale"
         }
     ],
     "security": [
@@ -122,7 +134,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -200,7 +212,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -278,7 +290,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -360,7 +372,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -455,7 +467,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -878,7 +890,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -958,7 +970,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1138,7 +1150,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1198,7 +1210,7 @@
                         }
                     },
                     "409": {
-                        "description": "Conflicts with the current state. code: conflict (or last_super_admin, request_in_progress)",
+                        "description": "Conflicts with the current state. code: conflict (or last_super_admin, request_in_progress, already_submitted, not_submitted, no_grade_scale)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1329,7 +1341,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2120,7 +2132,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2396,7 +2408,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2630,7 +2642,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2698,7 +2710,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3046,7 +3058,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3127,7 +3139,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3417,7 +3429,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused)",
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3551,6 +3563,913 @@
                     }
                 },
                 "security": []
+            }
+        },
+        "/lecturer/course-offerings": {
+            "get": {
+                "operationId": "lecturer.course-offerings.index",
+                "description": "Requires courses:teach. The courses I am assigned to, with how many students are registered and how many have a mark. Defaults to the current semester; filter with semester (a semester id). status is not_started, draft, submitted or released.",
+                "summary": "My courses",
+                "tags": [
+                    "Marks (lecturers)"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "department",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/OfferingMarkStatus"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `MarkEntryOfferingResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MarkEntryOfferingResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lecturer/course-offerings/{offering}/marks": {
+            "get": {
+                "operationId": "lecturer.marks.show",
+                "description": "Requires courses:teach and being assigned to the course (404 otherwise). The registered students with their saved mark, a letter grade preview from the active scale, and a summary of how many are missing. This is the review screen.",
+                "summary": "Class list and marks (review)",
+                "tags": [
+                    "Marks (lecturers)"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`MarksSheetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MarksSheetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "lecturer.marks.update",
+                "description": "Requires marks:enter and being assigned to the course. Body: marks, a list of {enrolment_id, score}; score is 0 to 100 with up to 2 decimals, or null to clear a draft mark. The whole request is checked first; if any row is wrong nothing is saved (422 with errors such as marks.1.score). Answers the same class list as the review. 423 grade_locked once the course is submitted. Send an Idempotency-Key header when retrying.",
+                "summary": "Save draft marks",
+                "tags": [
+                    "Marks (lecturers)"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SaveMarksRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`MarksSheetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MarksSheetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lecturer/course-offerings/{offering}/marks/submit": {
+            "post": {
+                "operationId": "lecturer.marks.submit",
+                "description": "Requires marks:submit and being assigned to the course. Every registered student must have a mark, otherwise 422 marks_incomplete with errors.marks listing who is missing. On success the letter grades are stored using the active scale and the marks lock: nobody can change them afterwards (423 grade_locked). Submitting twice answers 409 already_submitted. Send an Idempotency-Key header when retrying.",
+                "summary": "Submit marks (locks them)",
+                "tags": [
+                    "Marks (lecturers)"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "offering_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "draft",
+                                                        "not_started",
+                                                        "submitted",
+                                                        "released"
+                                                    ]
+                                                },
+                                                "submitted_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "marks_count": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "offering_id",
+                                                "status",
+                                                "submitted_at",
+                                                "marks_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/academics/course-offerings": {
+            "get": {
+                "operationId": "academics.course-offerings.index",
+                "description": "Requires academics:dashboard:view. Every course with its lecturers, how many students have a mark and its status (not_started, draft, submitted, released). Defaults to the current semester. Filters: semester, department (ids), status. meta.summary counts the courses in each status, ignoring the status filter. Paged.",
+                "summary": "Mark entry by course",
+                "tags": [
+                    "Academics dashboard and release"
+                ],
+                "parameters": [
+                    {
+                        "name": "semester",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "department",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 26,
+                            "maxLength": 26
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/OfferingMarkStatus"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `MarkEntryOfferingResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/MarkEntryOfferingResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "lecturers"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                },
+                                                "summary": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total",
+                                                "summary"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed; see `errors` per field. code: validation_failed (or invalid_token, cannot_disable_self, registration_rejected with a reason per course, registration_closed, idempotency_key_reused, marks_incomplete with the missing students in errors.marks)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/academics/course-offerings/{offering}/results": {
+            "get": {
+                "operationId": "academics.results.show",
+                "description": "Requires academics:dashboard:view. The class list with each student's score and letter grade, for review before release. 409 not_submitted while the lecturer has not submitted.",
+                "summary": "Submitted marks of a course (review before release)",
+                "tags": [
+                    "Academics dashboard and release"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`MarksSheetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MarksSheetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflicts with the current state. code: conflict (or last_super_admin, request_in_progress, already_submitted, not_submitted, no_grade_scale)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/academics/course-offerings/{offering}/release": {
+            "post": {
+                "operationId": "academics.results.release",
+                "description": "Requires results:release. The course must be submitted (409 not_submitted otherwise). After release students can see their letter grades. Release is per course and cannot be undone through the API; releasing a released course answers 200 with the same data. Send an Idempotency-Key header when retrying.",
+                "summary": "Release a course's results to students",
+                "tags": [
+                    "Academics dashboard and release"
+                ],
+                "parameters": [
+                    {
+                        "name": "offering",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offering ulid",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "offering_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "draft",
+                                                        "not_started",
+                                                        "submitted",
+                                                        "released"
+                                                    ]
+                                                },
+                                                "released_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "offering_id",
+                                                "status",
+                                                "released_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/me/results": {
+            "get": {
+                "operationId": "me.results",
+                "description": "Requires results:view-own. Released courses only, grouped by semester, with letter grade and credit hours. Never a numeric mark, percentage or GPA: the frontend calculates a sample GPA from GET /grade-scale and labels it not official. semesters is empty when nothing has been released. 404 if the account has no student record.",
+                "summary": "My results",
+                "tags": [
+                    "My results (students)"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`MyResultsResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MyResultsResource"
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "note": {
+                                                    "type": "string",
+                                                    "const": "Letter grades and credit hours only. GPA is not computed by the API; use GET /grade-scale for the sample points."
+                                                }
+                                            },
+                                            "required": [
+                                                "note"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Signed in but not allowed. code: forbidden (or account_disabled, password_change_required)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/grade-scale": {
+            "get": {
+                "operationId": "grade-scale",
+                "description": "Any signed-in user. The letters, score bands and points in use. For the demo it is synthetic (is_demo true) and official is always false; the points exist so a screen can show a sample GPA labelled not official. The API never calculates or stores a GPA. 404 when no scale is active.",
+                "summary": "The active grade scale",
+                "tags": [
+                    "Grade scale"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`GradeScaleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/GradeScaleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found. code: not_found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not signed in, or the token is missing, invalid or expired. code: unauthenticated (or invalid_credentials on login)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     },
@@ -3996,6 +4915,33 @@
                 ],
                 "title": "ForgotPasswordRequest"
             },
+            "GradeScaleResource": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "is_demo": {
+                        "type": "boolean"
+                    },
+                    "official": {
+                        "type": "boolean"
+                    },
+                    "bands": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "is_demo",
+                    "official",
+                    "bands"
+                ],
+                "title": "GradeScaleResource"
+            },
             "InviteUserRequest": {
                 "type": "object",
                 "properties": {
@@ -4050,6 +4996,131 @@
                     "password"
                 ],
                 "title": "LoginRequest"
+            },
+            "MarkEntryOfferingResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "course": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "credit_hours": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "code",
+                            "title",
+                            "credit_hours"
+                        ]
+                    },
+                    "semester": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "academic_year": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "academic_year",
+                            "number"
+                        ]
+                    },
+                    "classes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "exam_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "enrolled_count": {
+                        "type": "integer"
+                    },
+                    "marks_entered_count": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "not_started",
+                            "draft",
+                            "submitted",
+                            "released"
+                        ]
+                    },
+                    "submitted_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "released_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "lecturers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "course",
+                    "semester",
+                    "classes",
+                    "exam_date",
+                    "enrolled_count",
+                    "marks_entered_count",
+                    "status",
+                    "submitted_at",
+                    "released_at"
+                ],
+                "title": "MarkEntryOfferingResource"
+            },
+            "MarksSheetResource": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "MarksSheetResource"
+            },
+            "MyResultsResource": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "MyResultsResource"
+            },
+            "OfferingMarkStatus": {
+                "type": "string",
+                "description": "Where a course's marks are in their life. Worked out from the offering's own dates and its scores, never stored, so it cannot drift.\n| |\n|---|\n| `not_started` <br/> No marks saved yet. |\n| `draft` <br/> Some marks saved; the lecturer may still change them. |\n| `submitted` <br/> Submitted and locked; students cannot see it yet. |\n| `released` <br/> Released by the Head of Academics; students can see letter grades. |",
+                "enum": [
+                    "not_started",
+                    "draft",
+                    "submitted",
+                    "released"
+                ],
+                "title": "OfferingMarkStatus"
             },
             "ProgrammeResource": {
                 "type": "object",
@@ -4288,6 +5359,42 @@
                     "student"
                 ],
                 "title": "Role"
+            },
+            "SaveMarksRequest": {
+                "type": "object",
+                "properties": {
+                    "marks": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "enrolment_id": {
+                                    "type": "string",
+                                    "minLength": 26,
+                                    "maxLength": 26
+                                },
+                                "score": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "0 to 100 with at most 2 decimals; null clears a draft mark."
+                                }
+                            },
+                            "required": [
+                                "enrolment_id",
+                                "score"
+                            ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 500,
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "marks"
+                ],
+                "title": "SaveMarksRequest"
             },
             "SemesterResource": {
                 "type": "object",

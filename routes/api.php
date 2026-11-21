@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Academics\AcademicsResultsController;
+use App\Http\Controllers\Academics\GradeScaleController;
+use App\Http\Controllers\Academics\LecturerMarksController;
+use App\Http\Controllers\Academics\MeResultsController;
 use App\Http\Controllers\Academics\MeStudentController;
 use App\Http\Controllers\Academics\ReferenceDataController;
 use App\Http\Controllers\Academics\RegistrationWindowController;
@@ -77,6 +81,23 @@ Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(fun
         Route::get('me/course-offerings', [MeStudentController::class, 'courseOfferings'])->name('me.course-offerings');
         Route::post('me/registrations', [MeStudentController::class, 'register'])->name('me.registrations.store');
         Route::delete('me/registrations/{enrolment}', [MeStudentController::class, 'withdraw'])->name('me.registrations.destroy');
+
+        // The grade scale in use (any signed-in user; synthetic for the demo).
+        Route::get('grade-scale', GradeScaleController::class)->name('grade-scale');
+
+        // Lecturer: my courses, the class list, draft marks, submit (locks).
+        Route::get('lecturer/course-offerings', [LecturerMarksController::class, 'index'])->name('lecturer.course-offerings.index');
+        Route::get('lecturer/course-offerings/{offering}/marks', [LecturerMarksController::class, 'show'])->name('lecturer.marks.show');
+        Route::put('lecturer/course-offerings/{offering}/marks', [LecturerMarksController::class, 'update'])->name('lecturer.marks.update');
+        Route::post('lecturer/course-offerings/{offering}/marks/submit', [LecturerMarksController::class, 'submit'])->name('lecturer.marks.submit');
+
+        // Head of Academics: mark entry by course, review, release.
+        Route::get('academics/course-offerings', [AcademicsResultsController::class, 'index'])->name('academics.course-offerings.index');
+        Route::get('academics/course-offerings/{offering}/results', [AcademicsResultsController::class, 'show'])->name('academics.results.show');
+        Route::post('academics/course-offerings/{offering}/release', [AcademicsResultsController::class, 'release'])->name('academics.results.release');
+
+        // A student's own released results.
+        Route::get('me/results', [MeResultsController::class, 'show'])->name('me.results');
 
         // Students: staff look them up and register them.
         Route::get('students', [StudentController::class, 'index'])->name('students.index');

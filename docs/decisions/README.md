@@ -15,6 +15,7 @@ One short file per significant decision, so anyone can learn why the system is t
 | [0009](0009-forced-password-change.md) | Forced password change for issued accounts | Accepted |
 | [0010](0010-multi-tenancy-built-in-switched-off.md) | Multi-tenancy is built in and switched off | Accepted |
 | [0011](0011-slice-0-data-model.md) | Slice 0 data model: students, marks, locking and release | **Proposed**, pending the frontend's fields and owner approval |
+| [0012](0012-demo-results-and-sign-in-decisions.md) | Demo decisions: sign-in, marks, permissions and the sample GPA | Accepted |
 
 ## Template
 

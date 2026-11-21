@@ -67,6 +67,16 @@ class User extends Authenticatable
     }
 
     /**
+     * The staff record, for users who teach or work in a department.
+     *
+     * @return HasOne<StaffProfile, $this>
+     */
+    public function staffProfile(): HasOne
+    {
+        return $this->hasOne(StaffProfile::class);
+    }
+
+    /**
      * @return HasMany<Invitation, $this>
      */
     public function invitations(): HasMany

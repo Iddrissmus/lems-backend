@@ -25,6 +25,14 @@ enum Permission: string
     case RegistrationManage = 'registration:manage';
     case RegistrationSelf = 'registration:self';
 
+    // Marks, release and results (docs/api/demo-contract.md sections 7 to 9).
+    case CoursesTeach = 'courses:teach';
+    case MarksEnter = 'marks:enter';
+    case MarksSubmit = 'marks:submit';
+    case AcademicsDashboardView = 'academics:dashboard:view';
+    case ResultsRelease = 'results:release';
+    case ResultsViewOwn = 'results:view-own';
+
     /**
      * @return array<int, self>
      */

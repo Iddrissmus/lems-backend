@@ -31,4 +31,8 @@ enum AuditEvent: string
     case StudentRegistered = 'student.registered';
     case EnrolmentCreated = 'enrolment.created';
     case EnrolmentWithdrawn = 'enrolment.withdrawn';
+
+    // Marks and results
+    case MarksSubmitted = 'marks.submitted';
+    case ResultsReleased = 'results.released';
 }

@@ -338,11 +338,12 @@ class AcademicDemoSeeder extends Seeder
     {
         $scale = GradeScale::firstOrCreate(
             ['name' => 'Demo scale (synthetic, not the College rules)'],
-            ['is_active' => true, 'is_demo' => true, 'notes' => 'Placeholder bands for demonstrations only. The College has not confirmed its grading rules (D5). No GPA points are set.'],
+            ['is_active' => true, 'is_demo' => true, 'notes' => 'Placeholder bands and points for demonstrations only. The College has not confirmed its grading rules or GPA metric (D5). The points let a screen show a sample GPA labelled not official.'],
         );
 
-        foreach ([['A', 80, 100], ['B', 70, 79.99], ['C', 60, 69.99], ['D', 50, 59.99], ['F', 0, 49.99]] as $sort => [$letter, $min, $max]) {
-            $scale->bands()->firstOrCreate(['letter' => $letter], ['min_score' => $min, 'max_score' => $max, 'sort' => $sort + 1]);
+        // Sample points (a plain 4.0 scale) so the frontend can show a GPA marked "sample, not official".
+        foreach ([['A', 80, 100, 4.0], ['B', 70, 79.99, 3.0], ['C', 60, 69.99, 2.0], ['D', 50, 59.99, 1.0], ['F', 0, 49.99, 0.0]] as $sort => [$letter, $min, $max, $points]) {
+            $scale->bands()->updateOrCreate(['letter' => $letter], ['min_score' => $min, 'max_score' => $max, 'points' => $points, 'sort' => $sort + 1]);
         }
     }
 

@@ -38,7 +38,7 @@ You should see `Server running on [http://127.0.0.1:8000]`. Use the **second ter
 `docs/api/postman/` holds a ready-made collection and a local environment.
 
 1. In Postman: **Import** both files (`lems-backend.postman_collection.json` and `lems-local.postman_environment.json`) and select the **LEMS local** environment (top right).
-2. Create the demo accounts once (local only, they all use the password `password`): `php artisan db:seed --class=DemoUsersSeeder`. There is one per role, plus `first-login@demo.test`, which must change its password before it can do anything.
+2. Create the demo accounts once (local only, they all use the demo password: `DEMO_PASSWORD` in `.env`, which is `password` when not set; the commands below say `$demoPassword`, set it once with `$demoPassword = "<your value>"`): `php artisan db:seed --class=DemoUsersSeeder`. There is one per role, plus `first-login@demo.test`, which must change its password before it can do anything.
 3. Start the API: `php artisan serve`.
 4. Open the folder **1. Sign in as...** and send one request, for example *Sign in as super_admin*. The token is saved automatically and every other request uses it.
 5. Work down the folders. Each request has a short description. `List users` and `Invite a user` store `{{user_id}}` for the requests after them.
@@ -47,7 +47,7 @@ Try these three first:
 
 | Do this | You should see |
 |---|---|
-| *Sign in as first-login*, then *List users* | `403`, `code: password_change_required`. Then *Change password* (sends the current password `password`) and *List users* works. |
+| *Sign in as first-login*, then *List users* | `403`, `code: password_change_required`. Then *Change password* (sends the current demo password) and *List users* works. |
 | *Sign in as student*, then *List users* | `403`, `code: forbidden` |
 | *Sign in as super_admin*, then *List audit entries* | `200` with every sign-in and change so far |
 
@@ -375,10 +375,10 @@ Api POST /auth/password/change @{ current_password = "Reset-Passw0rd-42"; passwo
 Accounts created by the college with a password someone else chose (the seeded demo users, and later bulk-created students) are flagged `must_change_password`. Try the demo one (run `php artisan db:seed --class=DemoUsersSeeder` first):
 
 ```powershell
-$first = Get-Token "first-login@demo.test" "password"
+$first = Get-Token "first-login@demo.test" $demoPassword
 Api GET /me -Token $first
 Api GET /users -Token $first
-Api POST /auth/password/change @{ current_password = "password"; password = "First-Passw0rd-2026"; password_confirmation = "First-Passw0rd-2026" } -Token $first
+Api POST /auth/password/change @{ current_password = $demoPassword; password = "First-Passw0rd-2026"; password_confirmation = "First-Passw0rd-2026" } -Token $first
 Api GET /me -Token $first
 ```
 

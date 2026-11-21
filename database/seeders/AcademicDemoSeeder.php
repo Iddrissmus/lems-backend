@@ -355,7 +355,7 @@ class AcademicDemoSeeder extends Seeder
         );
     }
 
-    /** A synthetic person: a random Ghanaian-style name, password "password", active. */
+    /** A synthetic person: a random Ghanaian-style name, demo password (config demo.password), active. */
     private function person(string $email, Role $role): User
     {
         $name = fake()->randomElement(self::GIVEN).' '.fake()->randomElement(self::FAMILY);
@@ -364,7 +364,8 @@ class AcademicDemoSeeder extends Seeder
             ['name' => $name, 'password' => $this->hash(), 'status' => 'active'],
         );
 
-        $user->forceFill(['email_verified_at' => now()])->save();
+        // Re-running the seeder applies the current demo password to accounts that already exist.
+        $user->forceFill(['password' => $this->hash(), 'email_verified_at' => now()])->save();
         $user->syncRoles([$role->value]);
 
         return $user;
@@ -373,6 +374,6 @@ class AcademicDemoSeeder extends Seeder
     private function hash(): string
     {
         // One hash reused for every demo account: hashing 50 passwords one by one is slow.
-        return $this->passwordHash ??= Hash::make('password');
+        return $this->passwordHash ??= Hash::make((string) config('demo.password'));
     }
 }

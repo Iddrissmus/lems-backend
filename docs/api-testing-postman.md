@@ -25,17 +25,20 @@ Use this page to check, in about 10 minutes, that the whole API works as the fro
 3. **Postman:** Import > choose both files from `docs/api/postman/`:
    - `lems-backend.postman_collection.json`
    - `lems-local.postman_environment.json`
-4. Top right of Postman, pick the environment **LEMS local**. (Its only setting is `base_url`. If the API runs elsewhere, for example through a tunnel, change `base_url` there.)
+4. Top right of Postman, pick the environment **LEMS local**. (Its settings are `base_url`, and `demo_password`. If the API runs elsewhere, for example through a tunnel, change `base_url` there. Set `demo_password` to the value of `DEMO_PASSWORD` in the API's `.env`; it is `password` when that is not set. The real value is never stored in this repository.)
 
-The demo accounts are synthetic and exist only locally. All of them use the password `password`:
+The demo accounts are synthetic and exist only locally. All of them use the demo password (`DEMO_PASSWORD` in the API's `.env`, `password` when not set; run `php artisan db:seed` again after changing it):
 
 | Email | Role | What to expect |
 |---|---|---|
 | `super_admin@demo.test` | super_admin | Everything, including the audit log |
 | `head_of_academics@demo.test` | head_of_academics | Manages accounts, cannot make super admins, cannot read the audit log |
 | `ict_admin@demo.test` | ict_admin | Same rights as head_of_academics |
-| `academic_affairs@demo.test` | academic_affairs | No permissions yet (arrive with the results module) |
-| `registrar@demo.test`, `bursar@demo.test`, `lecturer@demo.test`, `student@demo.test` | the role named | No permissions yet |
+| `academic_affairs@demo.test` | academic_affairs | Reads students and the academics dashboard; cannot release |
+| `registrar@demo.test` | registrar | Registers students and issues their temporary password |
+| `lecturer@demo.test` | lecturer | Enters, reviews and submits marks for NUR 111 and SDV 101 |
+| `student@demo.test` | student | RGN year 1, nothing registered yet: registers for courses, later sees released results |
+| `bursar@demo.test` | bursar | No permissions yet |
 | `first-login@demo.test` | lecturer | **Must change its password first**: every call except `/me`, change password and sign out answers 403 |
 
 ## Part 2 - How the collection is organised
@@ -134,7 +137,7 @@ These two cannot be in the one-click run because the token only exists inside th
 | Folder 12 as `student@demo.test` | All green (the demo student has nothing released, so the list is empty) |
 | Folder 8 as `student@demo.test` | All green |
 | Part 5, both flows | Accept invitation 200 then 422; reset 200 |
-| `composer ci` | Pint, Larastan and all Pest tests pass (455 at the time of writing) |
+| `composer ci` | Pint, Larastan and all Pest tests pass (458 at the time of writing) |
 
 ## Part 7 - Command line (optional)
 
@@ -156,7 +159,7 @@ Submitting marks locks them for good, and that is the point. To rehearse the flo
 php artisan migrate:fresh --seed
 ```
 
-This deletes everything in the local `lems_backend` database and recreates the synthetic demo accounts and data. Only ever run it on your own laptop, never on a shared or real database. After it, the demo passwords are `password` again and folders 9 and 13 can be run once each (folder 9 can be repeated; folder 13 cannot until the next reset).
+This deletes everything in the local `lems_backend` database and recreates the synthetic demo accounts and data. Only ever run it on your own laptop, never on a shared or real database. After it, the demo accounts have the current `DEMO_PASSWORD` again and folders 9 and 13 can be run once each (folder 9 can be repeated; folder 13 cannot until the next reset).
 
 ## Last verified
 
@@ -164,7 +167,7 @@ This deletes everything in the local `lems_backend` database and recreates the s
 
 | Layer | Result |
 |---|---|
-| Automated tests (`composer ci`) | 455 passed, Pint and Larastan clean |
+| Automated tests (`composer ci`) | 458 passed, Pint and Larastan clean |
 | Postman collection run with Newman against a running API on a freshly seeded scratch database | Folder 9: 60 requests, 122 assertions, 0 failed. Folder 13: 29 requests, 68 assertions, 0 failed. Folders 10 to 12 by role: 15 requests, 34 assertions, 0 failed |
 | Earlier rounds | The 148-check live script (routing, CORS, every role, invitations, passwords, lockout, audit) passed on 2026-11-20 and is not yet extended to marks |
 

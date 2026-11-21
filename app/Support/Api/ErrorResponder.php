@@ -4,9 +4,11 @@ namespace App\Support\Api;
 
 use App\Exceptions\ApiException;
 use App\Exceptions\ApiValidationException;
+use App\Exceptions\GradeLocked;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -65,6 +67,12 @@ final class ErrorResponder
 
         if ($e instanceof ApiException && $e->getStatusCode() < 500) {
             return self::respond($e->getStatusCode(), $e->errorCode(), $e->getMessage(), headers: $e->getHeaders());
+        }
+
+        // The database refused to change submitted marks (the trigger signals grade_locked).
+        // Normally the model answers first; this catches a write that reached the database.
+        if ($e instanceof QueryException && str_contains($e->getMessage(), 'grade_locked')) {
+            return self::respond(Response::HTTP_LOCKED, 'grade_locked', (new GradeLocked)->getMessage());
         }
 
         if ($e instanceof HttpExceptionInterface) {

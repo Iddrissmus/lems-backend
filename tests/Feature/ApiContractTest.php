@@ -44,7 +44,7 @@ describe('success responses are wrapped in data', function () {
             ->assertOk()
             ->assertJsonPath('data.user.id', $user->ulid)
             ->assertJsonPath('data.user.roles', ['lecturer'])
-            ->assertJsonPath('data.user.permissions', [])
+            ->assertJsonPath('data.user.permissions', ['courses:teach', 'marks:enter', 'marks:submit'])
             ->assertJsonPath('data.user.must_change_password', false);
     });
 

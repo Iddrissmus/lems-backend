@@ -29,6 +29,31 @@ class GradeScale extends Model
     use BelongsToTenant, HasFactory, HasPublicUlid;
 
     /**
+     * The scale in use, with its bands from highest to lowest. Null when none is active.
+     */
+    public static function active(): ?self
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->with(['bands' => fn ($bands) => $bands->orderBy('sort')])
+            ->first();
+    }
+
+    /**
+     * The letter for a score: the band with the highest starting mark that the score reaches.
+     * Reads the bands as loaded (see active()), so call it freely in a loop.
+     */
+    public function letterFor(float|string $score): ?string
+    {
+        $score = (float) $score;
+
+        return $this->bands
+            ->sortByDesc(fn (GradeScaleBand $band) => (float) $band->min_score)
+            ->first(fn (GradeScaleBand $band) => $score >= (float) $band->min_score)
+            ?->letter;
+    }
+
+    /**
      * @return HasMany<GradeScaleBand, $this>
      */
     public function bands(): HasMany

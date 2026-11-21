@@ -93,7 +93,9 @@ describe('once seeded', function () {
         expect(now()->between($window->opens_at, $window->closes_at))->toBeTrue()
             ->and($scale->is_demo)->toBeTrue()
             ->and($scale->is_active)->toBeTrue()
-            ->and($scale->bands->pluck('points')->filter()->all())->toBe([]);
+            ->and($scale->bands->sortBy('sort')->pluck('letter')->all())->toBe(['A', 'B', 'C', 'D', 'F'])
+            // Sample points so the frontend can show a GPA labelled "sample, not official" (ADR 0012).
+            ->and($scale->bands->sortBy('sort')->pluck('points')->map(fn ($p) => (float) $p)->all())->toBe([4.0, 3.0, 2.0, 1.0, 0.0]);
     });
 
     it('gives every student a unique index number and demo accounts only use @demo.test', function () {

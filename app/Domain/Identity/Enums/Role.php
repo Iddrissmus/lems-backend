@@ -39,11 +39,12 @@ enum Role: string
             // ict_admin has the same account-management rights as head_of_academics
             // (owner's call, 2026-11-20). The academic permissions are proposals
             // from docs/api/demo-contract.md section 2, pending the frontend's answer.
-            self::HeadOfAcademics => [...Permission::usersGroup(), Permission::StudentsView, Permission::RegistrationManage],
+            self::HeadOfAcademics => [...Permission::usersGroup(), Permission::StudentsView, Permission::RegistrationManage, Permission::AcademicsDashboardView, Permission::ResultsRelease],
             self::IctAdmin => [...Permission::usersGroup(), Permission::AccountsCreate, Permission::AccountsResetPassword, Permission::StudentsView],
             self::Registrar => [Permission::AccountsCreate, Permission::StudentsView],
-            self::AcademicAffairs => [Permission::StudentsView],
-            self::Student => [Permission::RegistrationSelf],
+            self::AcademicAffairs => [Permission::StudentsView, Permission::AcademicsDashboardView],
+            self::Lecturer => [Permission::CoursesTeach, Permission::MarksEnter, Permission::MarksSubmit],
+            self::Student => [Permission::RegistrationSelf, Permission::ResultsViewOwn],
             default => [],
         };
     }

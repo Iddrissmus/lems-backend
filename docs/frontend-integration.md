@@ -33,7 +33,7 @@ Alternative: the browser's JavaScript calls the API directly. Then the token liv
    php artisan db:seed --class=RolesAndPermissionsSeeder
    php artisan db:seed --class=DemoUsersSeeder
    ```
-2. `docs/api-testing-postman.md` Part 3 passes (35 of 35).
+2. `docs/api-testing-postman.md` Part 3 passes (60 of 60) and, on freshly seeded data, folder 13 (29 of 29).
 3. The settings in `.env` for a demo that others can reach:
 
    | Setting | Value | Why |
@@ -44,6 +44,7 @@ Alternative: the browser's JavaScript calls the API directly. Then the token liv
    | `FRONTEND_URL` | `https://thescnmtc-lms.fly.dev` | Emailed links point to the frontend's pages |
    | `FRONTEND_ORIGINS` | `https://thescnmtc-lms.fly.dev` | Only needed if the browser calls the API directly |
    | `TRUSTED_PROXIES` | `*` | Behind a tunnel the API must trust the forwarded headers; otherwise every user looks like one person (shared rate limit) and the audit log records the wrong IP |
+   | `DEMO_PASSWORD` | your own value, at least 8 characters | The password of every demo account; then run `php artisan db:seed` |
    | `MAIL_MAILER` | `log` | No real emails are sent; they are written to `storage/logs/laravel.log` |
 
    After changing `.env`, restart the server.
@@ -64,7 +65,7 @@ Things to know about the tunnel:
 - The laptop must stay awake, online, and running MySQL, `php artisan serve` and ngrok for the whole demo.
 - If the frontend gets an HTML page instead of JSON, it is ngrok's browser warning page: have their server send the header `ngrok-skip-browser-warning: 1`.
 - Anyone with the address can call the API. This is acceptable **only because the data is synthetic**. Never put real student, staff or applicant data on it (Act 843, and the contract's uncapped liability).
-- The demo accounts all use the password `password`. On a public address I recommend giving them stronger passwords first (ask the developer to add a `DEMO_PASSWORD` setting) so a stranger who finds the address cannot sign in as `super_admin`.
+- The demo accounts all use the demo password, set with `DEMO_PASSWORD` in `.env` (default `password`). Set your own before opening the tunnel, run `php artisan db:seed` to apply it, and give it only to the people who need it, so a stranger who finds the address cannot sign in as `super_admin`. The full demo-day checklist is in `docs/demo.md`.
 
 ### What to send the frontend engineer
 

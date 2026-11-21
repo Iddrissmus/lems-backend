@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "f99306d8-285a-5e34-8217-b3c787d4d68c",
     "name": "LEMS SCNMTC Backend",
-    "description": "LEMS SCNMTC backend API.\n\n1. Import this collection and the 'LEMS local' environment, and select the environment.\n2. Start the API (php artisan serve) and create the demo accounts (php artisan db:seed --class=DemoUsersSeeder). Demo accounts are synthetic and local only.\n3. Send one request from '1. Sign in as...'. The token is saved automatically.\n4. Every request has tests: open the 'Test Results' tab after sending to see green or red.\n5. To check everything at once, run ONLY the folder '9. Automated checks' in the Collection Runner (re-run 'php artisan db:seed --class=DemoUsersSeeder' first if you changed demo passwords).\n6. For the marks, release and results part of the demo, run ONLY the folder '13. Demo flow end to end' on fresh demo data (php artisan migrate:fresh --seed); submitting marks is permanent.\n\nThe OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins.",
+    "description": "LEMS SCNMTC backend API.\n\n1. Import this collection and the 'LEMS local' environment, and select the environment.\n2. Start the API (php artisan serve) and create the demo accounts (php artisan db:seed --class=DemoUsersSeeder). Demo accounts are synthetic and local only. Their password is DEMO_PASSWORD from the API's .env ('password' when not set): put the same value in the environment variable demo_password.\n3. Send one request from '1. Sign in as...'. The token is saved automatically.\n4. Every request has tests: open the 'Test Results' tab after sending to see green or red.\n5. To check everything at once, run ONLY the folder '9. Automated checks' in the Collection Runner (re-run 'php artisan db:seed --class=DemoUsersSeeder' first if you changed demo passwords).\n6. For the marks, release and results part of the demo, run ONLY the folder '13. Demo flow end to end' on fresh demo data (php artisan migrate:fresh --seed); submitting marks is permanent.\n\nThe OpenAPI spec (docs/api/openapi.json) is the source of truth; if this collection disagrees with it, the spec wins.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -228,7 +228,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -285,7 +285,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -342,7 +342,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -399,7 +399,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"academic_affairs@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"academic_affairs@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -456,7 +456,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"registrar@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"registrar@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -513,7 +513,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"bursar@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"bursar@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -570,7 +570,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"lecturer@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"lecturer@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -627,7 +627,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"student@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"student@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -684,7 +684,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"first-login@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"first-login@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -783,7 +783,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"current_password\": \"password\",\n  \"password\": \"A-new-Passw0rd-2026\",\n  \"password_confirmation\": \"A-new-Passw0rd-2026\"\n}",
+              "raw": "{\n  \"current_password\": \"{{demo_password}}\",\n  \"password\": \"A-new-Passw0rd-2026\",\n  \"password_confirmation\": \"A-new-Passw0rd-2026\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2518,7 +2518,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3112,7 +3112,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3283,7 +3283,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"student@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"student@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3408,7 +3408,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"first-login@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"first-login@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3533,7 +3533,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3721,7 +3721,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3947,7 +3947,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"registrar@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"registrar@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4660,7 +4660,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4757,7 +4757,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5419,7 +5419,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"lecturer@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"lecturer@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6035,7 +6035,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6281,7 +6281,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6373,7 +6373,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6508,7 +6508,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"{{target_student_email}}\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6705,7 +6705,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"{{demo_password}}\",\n  \"device_name\": \"postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

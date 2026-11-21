@@ -2,6 +2,11 @@
 
 namespace App\Domain\Audit;
 
+use App\Domain\Academics\Events\EnrolmentCreated;
+use App\Domain\Academics\Events\EnrolmentWithdrawn;
+use App\Domain\Academics\Events\RegistrationWindowClosed;
+use App\Domain\Academics\Events\RegistrationWindowCreated;
+use App\Domain\Academics\Events\StudentRegistered;
 use App\Domain\Audit\Enums\AuditEvent;
 use App\Domain\Identity\Enums\UserStatus;
 use App\Domain\Identity\Events\InvitationAccepted;
@@ -11,9 +16,11 @@ use App\Domain\Identity\Events\PasswordChanged;
 use App\Domain\Identity\Events\UserInvited;
 use App\Domain\Identity\Events\UserLoggedIn;
 use App\Domain\Identity\Events\UserLoggedOut;
+use App\Domain\Identity\Events\UserPasswordResetByAdmin;
 use App\Domain\Identity\Events\UserRolesChanged;
 use App\Domain\Identity\Events\UserStatusChanged;
 use App\Domain\Identity\Events\UserUpdated;
+use App\Models\Enrolment;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Events\Dispatcher;
@@ -42,6 +49,12 @@ class AuditSubscriber
         $events->listen(UserUpdated::class, $this->onUpdated(...));
         $events->listen(UserRolesChanged::class, $this->onRolesChanged(...));
         $events->listen(UserStatusChanged::class, $this->onStatusChanged(...));
+        $events->listen(RegistrationWindowCreated::class, $this->onRegistrationWindowCreated(...));
+        $events->listen(RegistrationWindowClosed::class, $this->onRegistrationWindowClosed(...));
+        $events->listen(StudentRegistered::class, $this->onStudentRegistered(...));
+        $events->listen(EnrolmentCreated::class, $this->onEnrolmentCreated(...));
+        $events->listen(EnrolmentWithdrawn::class, $this->onEnrolmentWithdrawn(...));
+        $events->listen(UserPasswordResetByAdmin::class, $this->onPasswordResetByAdmin(...));
     }
 
     /** Resolved per call (not injected) so it stays swappable and Octane-safe. */
@@ -108,6 +121,67 @@ class AuditSubscriber
     private function onRolesChanged(UserRolesChanged $e): void
     {
         $this->audit()->record(AuditEvent::UserRolesChanged, $e->actor, $e->user, ['roles' => $e->before], ['roles' => $e->after]);
+    }
+
+    private function onRegistrationWindowCreated(RegistrationWindowCreated $e): void
+    {
+        $w = $e->window;
+
+        $this->audit()->record(AuditEvent::RegistrationWindowCreated, $e->actor, $w, after: [
+            'semester_id' => $w->semester->ulid,
+            'opens_at' => $w->opens_at->toIso8601String(),
+            'closes_at' => $w->closes_at->toIso8601String(),
+            'audience' => array_map(fn (array $a) => ['programme' => $a['programme']['code'], 'year_of_study' => $a['year_of_study']], $w->audienceDetails()),
+        ]);
+    }
+
+    private function onRegistrationWindowClosed(RegistrationWindowClosed $e): void
+    {
+        $this->audit()->record(AuditEvent::RegistrationWindowClosed, $e->actor, $e->window, ['closed_at' => null], ['closed_at' => $e->window->closed_at?->toIso8601String()]);
+    }
+
+    private function onStudentRegistered(StudentRegistered $e): void
+    {
+        $s = $e->student;
+
+        // Facts only. The temporary password is never passed to the audit log.
+        $this->audit()->record(AuditEvent::StudentRegistered, $e->actor, $s, after: [
+            'index_number' => $s->index_number,
+            'email' => $s->user->email,
+            'programme' => $s->programme->code,
+            'cohort' => $s->cohort->name,
+            'year_of_study' => $s->year_of_study,
+        ]);
+    }
+
+    private function onEnrolmentCreated(EnrolmentCreated $e): void
+    {
+        $this->audit()->record(AuditEvent::EnrolmentCreated, $e->actor, $e->enrolment, after: $this->enrolmentFacts($e->enrolment));
+    }
+
+    private function onEnrolmentWithdrawn(EnrolmentWithdrawn $e): void
+    {
+        $this->audit()->record(AuditEvent::EnrolmentWithdrawn, $e->actor, $e->enrolment, $this->enrolmentFacts($e->enrolment), ['status' => 'withdrawn']);
+    }
+
+    private function onPasswordResetByAdmin(UserPasswordResetByAdmin $e): void
+    {
+        // Only the fact that it happened; never the password.
+        $this->audit()->record(AuditEvent::UserPasswordResetByAdmin, $e->actor, $e->user);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function enrolmentFacts(Enrolment $enrolment): array
+    {
+        $enrolment->loadMissing('student', 'offering.course');
+
+        return [
+            'student' => $enrolment->student->index_number,
+            'course' => $enrolment->offering->course->code,
+            'course_offering_id' => $enrolment->offering->ulid,
+        ];
     }
 
     private function onStatusChanged(UserStatusChanged $e): void

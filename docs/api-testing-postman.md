@@ -47,7 +47,11 @@ The demo accounts are synthetic and exist only locally. All of them use the pass
 | 2. Authentication | `/me`, change password, sign out, forgot and reset password, accept invitation |
 | 3. Users and roles | List, invite, read, rename, set roles, disable, enable |
 | 4. Audit log | Read the audit trail (super_admin only) |
-| 9. Automated checks | A scripted walk through the whole flow, 35 steps, each with assertions |
+| 5. Reference data | Departments, programmes, cohorts, the current semester, courses on offer (saves ids for the next folders) |
+| 6. Registration windows | List, open and close a window (head_of_academics or super_admin) |
+| 7. Students (staff) | List, show and register a student; issue a temporary password (registrar, ict_admin or super_admin) |
+| 8. My registration | A student's own record, registration status, eligible courses, register and withdraw (sign in as a student first) |
+| 9. Automated checks | A scripted walk through the whole flow, 60 steps, each with assertions |
 
 Every request carries tests. After you send one, open the **Test Results** tab: green means the answer was what the contract promises (status code and shape). Red means something is wrong. Each request's **Description** says what it does and which permission it needs.
 
@@ -55,7 +59,7 @@ Every request carries tests. After you send one, open the **Test Results** tab: 
 
 1. Re-seed the demo accounts so they are in their starting state: `php artisan db:seed --class=DemoUsersSeeder`.
 2. In Postman, right-click the folder **9. Automated checks** > **Run folder** (or Collections > Runner, select only that folder) > **Run**.
-3. **Expect: 35 requests, 0 failed.** Every line is green.
+3. **Expect: 60 requests, 0 failed.** Every line is green.
 
 What the 35 steps prove:
 
@@ -72,8 +76,17 @@ What the 35 steps prove:
 | A28-A30 | `first-login` is told to change its password and is blocked everywhere else (403 `password_change_required`) |
 | A31-A33 | An ICT admin can list users but not read the audit log |
 | A34-A35 | After sign-out the token stops working (401) |
+| B01-B05 | The head of academics opens a registration window for RGN year 1 |
+| B06-B09 | The registrar cannot manage windows (403) but can read cohorts and the courses on offer |
+| B10-B11 | The registrar registers a student with a first course: index number issued, must change password, temporary password only in `meta`; the same email twice is refused (422) |
+| B12-B14 | The new student signs in with the temporary password, is blocked everywhere until they change it, then changes it |
+| B15-B16 | The student sees the first course and the open window, and is offered only courses of their own programme and year |
+| B17-B20 | The student registers for another course; registering it again is refused; a year 2 course is refused with a reason and nothing is registered; withdrawing keeps the record |
+| B21 | A student cannot use staff endpoints (403) |
+| B22-B23 | ict_admin issues the student a new temporary password |
+| B24-B25 | super_admin reads the audit log: every step above is there, and no password appears anywhere |
 
-It leaves one extra invited test user behind each run and does not change any demo password, so you can run it as often as you like. (Sign-in is limited to 20 requests a minute per IP; if you run it many times in a row and see 429, wait a minute.)
+It leaves behind one extra invited user, one new student and one registration window per run, and does not change any demo password, so you can run it as often as you like. (Sign-in is limited to 20 requests a minute per IP; if you run it many times in a row and see 429, wait a minute.)
 
 ## Part 4 - Try it by hand
 
@@ -109,11 +122,12 @@ These two cannot be in the one-click run because the token only exists inside th
 
 | Check | Expected |
 |---|---|
-| Folder 9 | 35 requests, 0 failed |
+| Folder 9 | 60 requests, 0 failed |
 | Folders 0, 1 | All green (every demo account signs in) |
-| Folders 3, 4 as `super_admin` | All green |
+| Folders 3, 4, 5, 6, 7 as `super_admin` | All green |
+| Folder 8 as `student@demo.test` | All green |
 | Part 5, both flows | Accept invitation 200 then 422; reset 200 |
-| `composer ci` | Pint, Larastan and all Pest tests pass (162 at the time of writing) |
+| `composer ci` | Pint, Larastan and all Pest tests pass (398 at the time of writing) |
 
 ## Part 7 - Command line (optional)
 
@@ -129,15 +143,15 @@ It prints each request and a final table. **Expect** `failed` to be 0 everywhere
 
 ## Last verified
 
-2026-11-20, on the `phase-1/auth-contract` branch:
+2026-11-20, on the `phase-1/registration` branch:
 
 | Layer | Result |
 |---|---|
-| Automated tests (`composer ci`) | 162 passed, Pint and Larastan clean |
+| Automated tests (`composer ci`) | 398 passed, Pint and Larastan clean |
 | Live end-to-end script against a running API (148 checks: routing, CORS, every role, invitations, passwords, lockout, audit) | 148 passed |
-| Postman collection run with Newman | Folder 9: 35 requests, 68 assertions, 0 failed. Folders 0, 1, 2, 3, 4: 0 failed |
+| Postman collection run with Newman | Folder 9: 60 requests, 122 assertions, 0 failed (twice in a row). Folders 0 to 8 also 0 failed |
 
-The live testing found and fixed one real bug: login answered `expires_at: null` although tokens do expire after 12 hours. It now reports the real time.
+Findings from earlier rounds that are now fixed: login reported `expires_at: null` although tokens expire after 12 hours; the API did not trust a tunnel's forwarded headers (now `TRUSTED_PROXIES`).
 
 ## If something goes wrong
 

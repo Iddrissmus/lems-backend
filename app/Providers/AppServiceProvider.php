@@ -3,7 +3,11 @@
 namespace App\Providers;
 
 use App\Domain\Audit\AuditSubscriber;
+use App\Domain\Identity\Enums\Permission;
+use App\Models\Enrolment;
 use App\Models\PersonalAccessToken;
+use App\Models\RegistrationWindow;
+use App\Models\StudentProfile;
 use App\Models\User;
 use App\Support\Api\ErrorEnvelopeDocumentation;
 use App\Support\Http\ProxyTrust;
@@ -58,7 +62,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Short, stable names stored in the database instead of class names
         // (e.g. audit_logs.subject_type = "user"). Renaming a class stays safe.
-        Relation::morphMap(['user' => User::class]);
+        Relation::morphMap([
+            'user' => User::class,
+            'student' => StudentProfile::class,
+            'enrolment' => Enrolment::class,
+            'registration_window' => RegistrationWindow::class,
+        ]);
 
         // Every domain event that matters becomes an audit entry.
         Event::subscribe(AuditSubscriber::class);
@@ -70,6 +79,19 @@ class AppServiceProvider extends ServiceProvider
         // The interactive API docs at /docs are for developers: available
         // locally and on staging, never in production.
         Gate::define('viewApiDocs', fn (?User $user = null) => $this->app->environment(['local', 'staging']));
+
+        // A student working on their own registration. The record itself is found from the
+        // signed-in user, so there is nothing in the URL to tamper with.
+        Gate::define('selfRegister', fn (User $user) => $user->can(Permission::RegistrationSelf->value));
+
+        // Reference data (departments, programmes, courses on offer...) is for anyone
+        // who works with students or registration. super_admin passes through Gate::before.
+        Gate::define('viewReferenceData', fn (User $user) => $user->hasAnyPermission([
+            Permission::StudentsView->value,
+            Permission::RegistrationManage->value,
+            Permission::RegistrationSelf->value,
+            Permission::AccountsCreate->value,
+        ]));
 
         // Document our real error format ({message, errors, code}).
         Scramble::configure()

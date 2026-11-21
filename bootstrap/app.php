@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\HandleIdempotency;
 use App\Http\Middleware\SetTenantFromUser;
 use App\Support\Api\ErrorResponder;
 use Illuminate\Foundation\Application;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => EnsureUserIsActive::class,
             'password.changed' => EnsurePasswordIsChanged::class,
             'tenant' => SetTenantFromUser::class,
+            'idempotent' => HandleIdempotency::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

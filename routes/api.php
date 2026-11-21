@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Academics\MeStudentController;
+use App\Http\Controllers\Academics\ReferenceDataController;
+use App\Http\Controllers\Academics\RegistrationWindowController;
+use App\Http\Controllers\Academics\StudentController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\AcceptInvitationController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -13,6 +17,7 @@ use App\Http\Controllers\ReadinessController;
 use App\Http\Controllers\Users\RoleController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Controllers\Users\UserInvitationController;
+use App\Http\Controllers\Users\UserPasswordResetController;
 use App\Http\Controllers\Users\UserRolesController;
 use App\Http\Controllers\Users\UserStatusController;
 use Illuminate\Support\Facades\Route;
@@ -34,7 +39,7 @@ Route::prefix('auth')->middleware('throttle:auth')->group(function () {
 });
 
 // Everything below needs a valid bearer token of an active account.
-Route::middleware(['auth:sanctum', 'tenant', 'active'])->group(function () {
+Route::middleware(['auth:sanctum', 'tenant', 'active', 'idempotent'])->group(function () {
     // Open even while a password change is pending: the user needs these to fix it.
     Route::post('auth/logout', LogoutController::class)->name('auth.logout');
     Route::post('auth/password/change', ChangePasswordController::class)->name('auth.password.change');
@@ -50,8 +55,33 @@ Route::middleware(['auth:sanctum', 'tenant', 'active'])->group(function () {
         Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::post('users/{user}/resend-invitation', [UserInvitationController::class, 'resend'])->name('users.resend-invitation');
         Route::put('users/{user}/roles', [UserRolesController::class, 'update'])->name('users.roles.update');
+        Route::post('users/{user}/reset-password', UserPasswordResetController::class)->name('users.reset-password');
         Route::post('users/{user}/disable', [UserStatusController::class, 'disable'])->name('users.disable');
         Route::post('users/{user}/enable', [UserStatusController::class, 'enable'])->name('users.enable');
+
+        // Reference data for the registration screens (read-only).
+        Route::get('departments', [ReferenceDataController::class, 'departments'])->name('departments.index');
+        Route::get('programmes', [ReferenceDataController::class, 'programmes'])->name('programmes.index');
+        Route::get('cohorts', [ReferenceDataController::class, 'cohorts'])->name('cohorts.index');
+        Route::get('semesters', [ReferenceDataController::class, 'semesters'])->name('semesters.index');
+        Route::get('course-offerings', [ReferenceDataController::class, 'courseOfferings'])->name('course-offerings.index');
+
+        // Registration windows: when students may register.
+        Route::get('registration-windows', [RegistrationWindowController::class, 'index'])->name('registration-windows.index');
+        Route::post('registration-windows', [RegistrationWindowController::class, 'store'])->name('registration-windows.store');
+        Route::post('registration-windows/{window}/close', [RegistrationWindowController::class, 'close'])->name('registration-windows.close');
+
+        // A student's own side of registration (works only on their own record).
+        Route::get('me/student', [MeStudentController::class, 'profile'])->name('me.student');
+        Route::get('me/registration', [MeStudentController::class, 'registration'])->name('me.registration');
+        Route::get('me/course-offerings', [MeStudentController::class, 'courseOfferings'])->name('me.course-offerings');
+        Route::post('me/registrations', [MeStudentController::class, 'register'])->name('me.registrations.store');
+        Route::delete('me/registrations/{enrolment}', [MeStudentController::class, 'withdraw'])->name('me.registrations.destroy');
+
+        // Students: staff look them up and register them.
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::post('students', [StudentController::class, 'store'])->name('students.store');
+        Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
 
         // Audit trail: read-only, super_admin only for now.
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

@@ -3,6 +3,7 @@
 namespace App\Support\Api;
 
 use App\Exceptions\ApiException;
+use App\Exceptions\ApiValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,6 +35,11 @@ final class ErrorResponder
     {
         if (! self::expectsApiResponse($request)) {
             return null;
+        }
+
+        if ($e instanceof ApiValidationException) {
+            // Field errors with their own stable code, for example registration_rejected.
+            return self::respond($e->status, $e->errorCode(), $e->getMessage(), $e->errors());
         }
 
         if ($e instanceof ValidationException) {

@@ -27,6 +27,66 @@
     {
       "key": "user_id",
       "value": ""
+    },
+    {
+      "key": "programme_id",
+      "value": ""
+    },
+    {
+      "key": "cohort_id",
+      "value": ""
+    },
+    {
+      "key": "semester_id",
+      "value": ""
+    },
+    {
+      "key": "window_id",
+      "value": ""
+    },
+    {
+      "key": "window_opens",
+      "value": ""
+    },
+    {
+      "key": "window_closes",
+      "value": ""
+    },
+    {
+      "key": "offering_nur111",
+      "value": ""
+    },
+    {
+      "key": "offering_nur112",
+      "value": ""
+    },
+    {
+      "key": "offering_nur211",
+      "value": ""
+    },
+    {
+      "key": "student_id",
+      "value": ""
+    },
+    {
+      "key": "new_student_id",
+      "value": ""
+    },
+    {
+      "key": "new_student_user_id",
+      "value": ""
+    },
+    {
+      "key": "new_student_email",
+      "value": ""
+    },
+    {
+      "key": "new_student_password",
+      "value": ""
+    },
+    {
+      "key": "my_enrolment_id",
+      "value": ""
     }
   ],
   "item": [
@@ -1349,6 +1409,798 @@
       ]
     },
     {
+      "name": "5. Reference data (staff and students)",
+      "item": [
+        {
+          "name": "Departments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/departments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "departments"
+              ]
+            },
+            "description": "Needs students:view, registration:manage, registration:self or accounts:create."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('a list of departments', () => pm.expect(body.data).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Programmes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/programmes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "programmes"
+              ]
+            },
+            "description": "Saves the RGN programme id as {{programme_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const rgn = body.data.find(p => p.code === 'RGN'); if (rgn) pm.collectionVariables.set('programme_id', rgn.id);",
+                  "pm.test('has RGN with its department', () => pm.expect(rgn.department.code).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cohorts of the saved programme",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cohorts?programme={{programme_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cohorts"
+              ],
+              "query": [
+                {
+                  "key": "programme",
+                  "value": "{{programme_id}}",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Saves the 2026 cohort id as {{cohort_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const c = body.data.find(x => x.intake_year === 2026); if (c) pm.collectionVariables.set('cohort_id', c.id);",
+                  "pm.test('has the 2026 cohort', () => pm.expect(c).to.not.be.undefined);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current semester",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters?current=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "semesters"
+              ],
+              "query": [
+                {
+                  "key": "current",
+                  "value": "1",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('one current semester of 16 weeks', () => { pm.expect(body.data).to.have.lengthOf(1); pm.expect(body.data[0].length_weeks).to.eql(16); });",
+                  "if (body.data.length) pm.collectionVariables.set('semester_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Courses on offer this semester",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-offerings?per_page=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "course-offerings"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "programme",
+                  "value": "{{programme_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Saves the offering ids of NUR 111, NUR 112 and NUR 211 for the requests that follow."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('paged, each with classes', () => { pm.expect(body.data.length).to.be.above(0); pm.expect(body.data[0].classes).to.be.an('array'); pm.expect(body.meta.per_page).to.eql(50); });",
+                  "const rows = body && body.data ? body.data : [];",
+                  "const c_nur111 = rows.find(o => o.course && o.course.code === 'NUR 111'); if (c_nur111) pm.collectionVariables.set('offering_nur111', c_nur111.id);",
+                  "const c_nur112 = rows.find(o => o.course && o.course.code === 'NUR 112'); if (c_nur112) pm.collectionVariables.set('offering_nur112', c_nur112.id);",
+                  "const c_nur211 = rows.find(o => o.course && o.course.code === 'NUR 211'); if (c_nur211) pm.collectionVariables.set('offering_nur211', c_nur211.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Registration windows (head_of_academics / super_admin)",
+      "item": [
+        {
+          "name": "List windows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows?",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open",
+                  "disabled": true
+                },
+                {
+                  "key": "semester",
+                  "value": "{{semester_id}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Needs registration:manage. Tick the disabled parameters to filter."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('windows with a computed status', () => { pm.expect(body.data).to.be.an('array'); if (body.data.length) pm.expect(['not_yet_open', 'open', 'closed']).to.include(body.data[0].status); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Open a window",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_id\": \"{{semester_id}}\",\n  \"opens_at\": \"{{window_opens}}\",\n  \"closes_at\": \"{{window_closes}}\",\n  \"audience\": [\n    {\n      \"programme_id\": \"{{programme_id}}\",\n      \"year_of_study\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Needs registration:manage. Remove the audience to open it for everyone. The Idempotency-Key header makes a retry safe."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const now = new Date();",
+                  "pm.collectionVariables.set('window_opens', new Date(now.getTime() - 3600e3).toISOString());",
+                  "pm.collectionVariables.set('window_closes', new Date(now.getTime() + 14 * 86400e3).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('open, for RGN year 1', () => { pm.expect(body.data.status).to.eql('open'); pm.expect(body.data.audience[0].programme.code).to.eql('RGN'); });",
+                  "pm.collectionVariables.set('window_id', body.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Close the window",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows/{{window_id}}/close",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows",
+                "{{window_id}}",
+                "close"
+              ]
+            },
+            "description": "Closes it early. Closing a window that is already closed does nothing and still answers 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('closed', () => pm.expect(body.data.status).to.eql('closed'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Students (staff: registrar / ict_admin / super_admin)",
+      "item": [
+        {
+          "name": "List students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students?per_page=5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "programme",
+                  "value": "{{programme_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "year",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "5",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Needs students:view. Saves the first student's id as {{student_id}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('paged students with index numbers', () => { pm.expect(body.data.length).to.be.above(0); pm.expect(body.data[0].index_number).to.be.a('string'); });",
+                  "if (body.data.length) pm.collectionVariables.set('student_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show a student",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students",
+                "{{student_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('the student', () => { pm.expect(body.data.user.email).to.be.a('string'); pm.expect(body.data).to.not.have.property('password'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register a student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto Student\",\n  \"email\": \"auto.student.{{$timestamp}}@demo.test\",\n  \"programme_id\": \"{{programme_id}}\",\n  \"cohort_id\": \"{{cohort_id}}\",\n  \"course_offering_ids\": [\n    \"{{offering_nur111}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Needs accounts:create. Creates the account, the student record and the index number in one step. The temporary password appears only in this answer (see the Console). Needs {{programme_id}}, {{cohort_id}} and {{offering_nur111}} from folder 5."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('index number issued, must change password, one course', () => { pm.expect(body.data.index_number).to.match(/^RGN\\/2026\\/\\d{4}$/); pm.expect(body.data.user.must_change_password).to.eql(true); pm.expect(body.data.registered_offerings).to.eql(1); });",
+                  "pm.test('temporary password shown once, in meta', () => pm.expect(body.meta.temporary_password).to.match(/^[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/));",
+                  "pm.collectionVariables.set('new_student_id', body.data.id);",
+                  "pm.collectionVariables.set('new_student_user_id', body.data.user.id);",
+                  "pm.collectionVariables.set('new_student_email', body.data.user.email);",
+                  "pm.collectionVariables.set('new_student_password', body.meta.temporary_password);",
+                  "console.log('Hand over:', body.data.user.email, body.meta.temporary_password, '(shown once)');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Issue a new temporary password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{new_student_user_id}}/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{new_student_user_id}}",
+                "reset-password"
+              ]
+            },
+            "description": "Needs accounts:reset-password (ict_admin or super_admin). Signs the person out everywhere."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('new temporary password, must change', () => { pm.expect(body.meta.temporary_password).to.be.a('string'); pm.expect(body.data.must_change_password).to.eql(true); });",
+                  "pm.collectionVariables.set('new_student_password', body.meta.temporary_password);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. My registration (sign in as a student first)",
+      "item": [
+        {
+          "name": "My student record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/student",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "student"
+              ]
+            },
+            "description": "Sign in as student (folder 1) first. Everything here works on the signed-in student's own record."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('my record', () => { pm.expect(body.data.index_number).to.be.a('string'); pm.expect(body.data.programme.code).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My registration this semester",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registration",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registration"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('semester, window and registered list', () => { pm.expect(body.data).to.have.property('semester'); pm.expect(body.data).to.have.property('window'); pm.expect(body.data.registered).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Courses I can register for",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/course-offerings?",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "course-offerings"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('each with a registered flag', () => { pm.expect(body.data.length).to.be.above(0); pm.expect(body.data[0].registered).to.be.a('boolean'); });",
+                  "const rows = body && body.data ? body.data : [];",
+                  "const c_nur111 = rows.find(o => o.course && o.course.code === 'NUR 111'); if (c_nur111) pm.collectionVariables.set('offering_nur111', c_nur111.id);",
+                  "const c_nur112 = rows.find(o => o.course && o.course.code === 'NUR 112'); if (c_nur112) pm.collectionVariables.set('offering_nur112', c_nur112.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register for a course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_offering_ids\": [\n    \"{{offering_nur112}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Needs an open registration window for the student's programme and year. All or nothing: a refused course gives 422 registration_rejected with a reason per course."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('registered', () => pm.expect(body.data[0].status).to.eql('registered'));",
+                  "pm.collectionVariables.set('my_enrolment_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Withdraw from the course",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations/{{my_enrolment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations",
+                "{{my_enrolment_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('withdrawn, record kept', () => pm.expect(body.data.status).to.eql('withdrawn'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "9. Automated checks (run this folder in the Collection Runner)",
       "item": [
         {
@@ -2469,7 +3321,7 @@
           ]
         },
         {
-          "name": "A27 Student /me has no permissions",
+          "name": "A27 Student /me has only the registration permission",
           "request": {
             "method": "GET",
             "header": [
@@ -2496,7 +3348,7 @@
                 "exec": [
                   "pm.test('status is 200', () => pm.response.to.have.status(200));",
                   "let body = null; try { body = pm.response.json(); } catch (e) {}",
-                  "pm.test('student, no permissions', () => { pm.expect(body.data.roles).to.eql(['student']); pm.expect(body.data.permissions).to.eql([]); });"
+                  "pm.test('student, registration:self only', () => { pm.expect(body.data.roles).to.eql(['student']); pm.expect(body.data.permissions).to.eql(['registration:self']); });"
                 ]
               }
             }
@@ -2814,9 +3666,1144 @@
               }
             }
           ]
+        },
+        {
+          "name": "B01 Sign in as head_of_academics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"head_of_academics@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B02 Head lists registration windows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B03 Reference data for the head (semester)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters?current=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "semesters"
+              ],
+              "query": [
+                {
+                  "key": "current",
+                  "value": "1",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.collectionVariables.set('semester_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B04 Head reads programmes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/programmes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "programmes"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const rgn = body.data.find(p => p.code === 'RGN'); pm.collectionVariables.set('programme_id', rgn.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B05 Head opens a registration window for RGN year 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"semester_id\": \"{{semester_id}}\",\n  \"opens_at\": \"{{window_opens}}\",\n  \"closes_at\": \"{{window_closes}}\",\n  \"audience\": [\n    {\n      \"programme_id\": \"{{programme_id}}\",\n      \"year_of_study\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const now = new Date();",
+                  "pm.collectionVariables.set('window_opens', new Date(now.getTime() - 3600e3).toISOString());",
+                  "pm.collectionVariables.set('window_closes', new Date(now.getTime() + 14 * 86400e3).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('open', () => pm.expect(body.data.status).to.eql('open'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B06 Sign in as registrar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"registrar@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B07 Registrar cannot manage windows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/registration-windows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "registration-windows"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B08 Registrar reads cohorts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cohorts?programme={{programme_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cohorts"
+              ],
+              "query": [
+                {
+                  "key": "programme",
+                  "value": "{{programme_id}}",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const c = body.data.find(x => x.intake_year === 2026); pm.collectionVariables.set('cohort_id', c.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B09 Registrar reads courses on offer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-offerings?per_page=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "course-offerings"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "const rows = body && body.data ? body.data : [];",
+                  "const c_nur111 = rows.find(o => o.course && o.course.code === 'NUR 111'); if (c_nur111) pm.collectionVariables.set('offering_nur111', c_nur111.id);",
+                  "const c_nur112 = rows.find(o => o.course && o.course.code === 'NUR 112'); if (c_nur112) pm.collectionVariables.set('offering_nur112', c_nur112.id);",
+                  "const c_nur211 = rows.find(o => o.course && o.course.code === 'NUR 211'); if (c_nur211) pm.collectionVariables.set('offering_nur211', c_nur211.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B10 Registrar registers a student with a first course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto Student\",\n  \"email\": \"auto.student.{{$timestamp}}@demo.test\",\n  \"programme_id\": \"{{programme_id}}\",\n  \"cohort_id\": \"{{cohort_id}}\",\n  \"course_offering_ids\": [\n    \"{{offering_nur111}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('index number, must change password, one course', () => { pm.expect(body.data.index_number).to.match(/^RGN\\/2026\\/\\d{4}$/); pm.expect(body.data.user.must_change_password).to.eql(true); pm.expect(body.data.registered_offerings).to.eql(1); });",
+                  "pm.test('temporary password only in meta', () => { pm.expect(body.meta.temporary_password).to.be.a('string'); pm.expect(JSON.stringify(body.data)).to.not.include(body.meta.temporary_password); });",
+                  "pm.collectionVariables.set('new_student_user_id', body.data.user.id);",
+                  "pm.collectionVariables.set('new_student_email', body.data.user.email);",
+                  "pm.collectionVariables.set('new_student_password', body.meta.temporary_password);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B11 Registrar cannot register a student twice with the same email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Auto Student\",\n  \"email\": \"{{new_student_email}}\",\n  \"programme_id\": \"{{programme_id}}\",\n  \"cohort_id\": \"{{cohort_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is validation_failed', () => pm.expect(body && body.code).to.eql('validation_failed'));",
+                  "pm.test('email error', () => pm.expect(body.errors).to.have.property('email'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B12 Sign in as the new student with the temporary password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{new_student_email}}\",\n  \"password\": \"{{new_student_password}}\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}",
+                  "pm.test('must change password', () => pm.expect(body.data.user.must_change_password).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B13 New student is blocked until the password is changed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registration",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registration"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is password_change_required', () => pm.expect(body && body.code).to.eql('password_change_required'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B14 New student changes the password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/password/change",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "password",
+                "change"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{new_student_password}}\",\n  \"password\": \"Student-Passw0rd-2026\",\n  \"password_confirmation\": \"Student-Passw0rd-2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B15 My registration shows the first course and the open window",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registration",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registration"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('NUR 111 registered, window open', () => { pm.expect(body.data.registered.map(r => r.code)).to.eql(['NUR 111']); pm.expect(body.data.window.status).to.eql('open'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B16 Courses I can register for (year 1 only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/course-offerings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "course-offerings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('only my programme and year, with flags', () => { const codes = body.data.map(o => o.course.code); pm.expect(codes).to.include('NUR 111'); pm.expect(codes).to.include('NUR 112'); pm.expect(codes).to.not.include('NUR 211'); pm.expect(body.data.find(o => o.course.code === 'NUR 111').registered).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B17 Register for NUR 112",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_offering_ids\": [\n    \"{{offering_nur112}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.collectionVariables.set('my_enrolment_id', body.data[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B18 Registering the same course again is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_offering_ids\": [\n    \"{{offering_nur112}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is registration_rejected', () => pm.expect(body && body.code).to.eql('registration_rejected'));",
+                  "pm.test('reason for course 0', () => pm.expect(body.errors['course_offering_ids.0'][0]).to.include('already registered'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B19 A year 2 course is refused, and nothing else is registered either",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_offering_ids\": [\n    \"{{offering_nur211}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.response.to.have.status(422));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is registration_rejected', () => pm.expect(body && body.code).to.eql('registration_rejected'));",
+                  "pm.test('curriculum reason', () => pm.expect(body.errors['course_offering_ids.0'][0]).to.include('curriculum'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B20 Withdraw from NUR 112",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me/registrations/{{my_enrolment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me",
+                "registrations",
+                "{{my_enrolment_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('withdrawn', () => pm.expect(body.data.status).to.eql('withdrawn'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B21 A student cannot use staff endpoints",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "students"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 403', () => pm.response.to.have.status(403));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('error code is forbidden', () => pm.expect(body && body.code).to.eql('forbidden'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B22 Sign in as ict_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ict_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B23 ict_admin issues the new student a temporary password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{new_student_user_id}}/reset-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{new_student_user_id}}",
+                "reset-password"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('new temporary password', () => pm.expect(body.meta.temporary_password).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B24 Sign in as super_admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"super_admin@demo.test\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('has a token and the user', () => { pm.expect(body.data.token).to.be.a('string'); pm.expect(body.data.user.id).to.have.lengthOf(26); });",
+                  "pm.test('token has an expiry (12 hours)', () => pm.expect(body.data.expires_at).to.be.a('string'));",
+                  "if (body && body.data && body.data.token) {",
+                  "  pm.collectionVariables.set('token', body.data.token);",
+                  "  pm.collectionVariables.set('my_id', body.data.user.id);",
+                  "  console.log('roles:', body.data.user.roles.join(', '), '| must_change_password:', body.data.user.must_change_password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "B25 The audit log has the whole story and no passwords",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/audit-logs?per_page=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "100",
+                  "disabled": false
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "let body = null; try { body = pm.response.json(); } catch (e) {}",
+                  "pm.test('registration events recorded', () => { const e = body.data.map(x => x.event); ['registration_window.created', 'student.registered', 'enrolment.created', 'enrolment.withdrawn', 'user.password_reset_by_admin'].forEach(n => pm.expect(e).to.include(n)); });",
+                  "pm.test('no passwords anywhere', () => { const t = pm.response.text(); pm.expect(t).to.not.include(pm.collectionVariables.get('new_student_password')); pm.expect(t).to.not.include('Student-Passw0rd-2026'); });"
+                ]
+              }
+            }
+          ]
         }
       ],
-      "description": "A scripted walk through the whole demo flow with an assertion on every step. In Postman: right-click this folder > Run folder (or use the Runner and select only this folder). All steps should be green. It leaves one invited test user behind per run. It does not change any demo password."
+      "description": "A scripted walk through the whole demo flow (sign-in, users, registration windows, registering a student, the student registering for courses, password resets, the audit log) with an assertion on every step. In Postman: right-click this folder > Run folder (or use the Runner and select only this folder). All steps should be green. It leaves one invited user, one student and one registration window behind per run. It does not change any demo password."
     }
   ]
 }

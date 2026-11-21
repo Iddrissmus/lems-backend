@@ -1,6 +1,6 @@
 # API contract for the demo flow (DRAFT v0)
 
-**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. Nothing in sections 3 to 9 is implemented yet; sign-in, users, roles and the audit log (section 1) already are. After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
+**Status:** draft for review by the frontend engineer, 2026-11-20. Written by the backend; the frontend corrects it. **Built and tested (2026-11-20): sections 3 to 6** (reference data, registration windows, staff registering students and password resets, the student's own course registration) and the `Idempotency-Key` rule, on the branch `phase-1/registration`. **Not built yet: sections 7 to 9** (lecturer marks, release, student results). Sign-in, users, roles and the audit log (section 1) were already built. Where a built endpoint differs from what this draft first said, the text says "As built". After you reply we **freeze** it; once built, the live OpenAPI document (`docs/api/openapi.json`, served at `/docs`) replaces this page. After the freeze, changes are additive only.
 
 **The flow it covers:** staff register a student, the student registers for courses, the lecturer enters, reviews and submits marks, the Head of Academics releases them, the student sees letter grades.
 
@@ -30,7 +30,7 @@
 
 ## 2. Roles and permissions (proposed)
 
-`GET /me` returns `permissions` (an array of names). Hide or show screens from permissions, not role names. I propose the colon style your "Roles & permissions" screen already uses; the permissions your screen does not have yet are marked **new**. **(Q2)**
+`GET /me` returns `permissions` (an array of names). Built so far: `accounts:create`, `accounts:reset-password`, `students:view`, `registration:manage`, `registration:self`; the rest arrive with their endpoints. Hide or show screens from permissions, not role names. I propose the colon style your "Roles & permissions" screen already uses; the permissions your screen does not have yet are marked **new**. **(Q2)**
 
 | Permission | Meaning | Proposed holders |
 |---|---|---|
@@ -118,7 +118,7 @@ A window says when students may register. Registration is only possible while a 
   "year_of_study": 1, "moh_membership_id": null, "course_offering_ids": ["01jd...", "01jd..."] }
 ```
 
-`cohort_id`, `year_of_study`, `moh_membership_id` and `course_offering_ids` are optional (`year_of_study` defaults from the cohort). Answer:
+`moh_membership_id` and `course_offering_ids` are optional. **As built:** the student needs a cohort. Give `cohort_id`, or give `year_of_study` when exactly one cohort of that programme is in that year (otherwise 422 on `cohort_id`). `year_of_study` defaults to the cohort's current year. Staff registering first courses do not need an open registration window; if any course is refused nothing is created (the account, the record and the courses roll back together). Answer:
 
 ```json
 {
@@ -132,21 +132,22 @@ A window says when students may register. Registration is only possible while a 
     "status": "active",
     "registered_offerings": 2
   },
-  "meta": { "temporary_password": "Qk7-vN2m-Rt9x" }
+  "meta": { "temporary_password": "Qk7x-vN2m-Rt9x" }
 }
 ```
 
 - `meta.temporary_password` is shown **once**, in this answer only. It is never stored in readable form, never returned again, and never written to the audit log. Show it to the staff member to hand over. The student is forced to change it at first sign-in.
 - The index number is issued by the API (collision-safe). Its format is a placeholder (`<programme code>/<year>/<4-digit serial>`) until the College confirms its own. **(A2)**
 - Email must be unique across the system: 422 `validation_failed` with `errors.email`. Your `emailSuggestion` stays a frontend feature; the API only validates. **(Q10)**
-- `POST /users/{id}/reset-password` answers `{ data: {id, name, email, must_change_password: true}, meta: {temporary_password} }`. It signs the user out everywhere.
+- `POST /users/{id}/reset-password` answers the user (with `must_change_password: true`) and `meta.temporary_password`. It signs the user out everywhere. **As built:** only for an **active** account (409 `conflict` for invited or disabled ones), not for yourself, and not for a `super_admin` unless you are one. The temporary password has the form `Qk7x-vN2m-Rt9x` (14 characters, no look-alike characters).
+- **As built:** a retry with the same `Idempotency-Key` returns the same temporary password again (the saved answer is encrypted in the database), so a dropped connection does not lose it.
 - Student record shape (`GET /students`, `GET /students/{id}`): the `data` object above without `meta`, plus `moh_membership_id`, `created_at`.
 
 ## 6. Student course registration
 
 | Request | Permission | Notes |
 |---|---|---|
-| `GET /me/student` | `registration:self` or `results:view-own` | My profile: `{id, index_number, name, programme, cohort, year_of_study, status}` |
+| `GET /me/student` | `registration:self` (and `results:view-own` once it exists) | My profile: `{id, index_number, name, programme, cohort, year_of_study, status}` |
 | `GET /me/registration` | `registration:self` | Is registration open for me, and what I have registered |
 | `GET /me/course-offerings?q=` | `registration:self` | Courses I may register for: my programme's curriculum for my year in the current semester, with `registered: true/false` |
 | `POST /me/registrations` | `registration:self` | Register for courses. 201 |
@@ -162,7 +163,7 @@ A window says when students may register. Registration is only possible while a 
 } }
 ```
 
-`window` is `null` when no window covers me. `POST /me/registrations`:
+`window` is the one that matters to me: an open one, else the next to open, else the most recently closed, or `null` when none covers my programme and year. `semester` is `null` when there is no current semester. `POST /me/registrations`:
 
 ```json
 { "course_offering_ids": ["01jd...", "01jd..."] }
@@ -175,7 +176,7 @@ Answer 201: `data: [ { id, course_offering_id, code, title, credit_hours, regist
   "errors": { "course_offering_ids.1": ["This course is not in your programme's curriculum for this semester."] } }
 ```
 
-Reasons, each as a human sentence in `errors` (the frontend shows them as your `rejection`): registration is closed (422 `registration_closed`, `errors` empty), the course is not offered this semester, the course is not in the student's curriculum for their programme and year, the student is already registered. **I do not enforce credit limits, clashes, prerequisites or arrears rules: the College has not confirmed them (BE-065).** **(A4)**
+Reasons, each as a human sentence in `errors` (the frontend shows them as your `rejection`): registration is closed (422 `registration_closed`, `errors` empty), the course is not offered this semester, the course is not in the student's curriculum for their programme, year and semester, the student is already registered. **As built:** `DELETE /me/registrations/{id}` keeps the registration with status `withdrawn`, needs an open window, answers 409 `conflict` once marks exist for the course or if it is already withdrawn, and 404 for a registration that is not the student's own. Registering again for a withdrawn course reuses the same registration. **I do not enforce credit limits, clashes, prerequisites or arrears rules: the College has not confirmed them (BE-065).** **(A4)**
 
 ## 7. Lecturer: enter, review, submit
 
@@ -284,13 +285,14 @@ Only released courses appear; a submitted but unreleased course does not. **No n
 | 422 | `marks_incomplete` | Submitting while registered students have no mark |
 | 422 | `registration_rejected` | One or more courses refused; `errors` explains each |
 | 422 | `registration_closed` | No open window for the student |
-| 422 | `idempotency_key_reused` | The same `Idempotency-Key` with a different body |
+| 422 | `idempotency_key_reused` | The same `Idempotency-Key` with a different body or on a different endpoint |
+| 409 | `request_in_progress` | The same `Idempotency-Key` arrives while the first request is still running |
 
 Everything else uses the existing codes (`validation_failed`, `forbidden`, `not_found`, ...).
 
 ## 11. Audit entries
 
-Recorded automatically (readable with `GET /audit-logs` by `audit.view`): `student.registered`, `student.password_reset`, `registration_window.created`, `registration_window.closed`, `enrolment.created`, `enrolment.withdrawn`, `marks.submitted`, `results.released`, `results.corrected` (with the reason). Draft saves are not audited one by one. Passwords and tokens are never recorded.
+Recorded automatically (readable with `GET /audit-logs` by `audit.view`): `student.registered`, `user.password_reset_by_admin` (built under this name; it applies to any account), `registration_window.created`, `registration_window.closed`, `enrolment.created`, `enrolment.withdrawn`, `marks.submitted`, `results.released`, `results.corrected` (with the reason). Draft saves are not audited one by one. Passwords and tokens are never recorded.
 
 ## 12. How your screens map (your field names to ours)
 

@@ -68,6 +68,16 @@ class StudentProfile extends Model
         return $this->hasMany(Enrolment::class);
     }
 
+    /**
+     * Courses the student is currently registered for (not withdrawn).
+     *
+     * @return HasMany<Enrolment, $this>
+     */
+    public function registeredEnrolments(): HasMany
+    {
+        return $this->hasMany(Enrolment::class)->where('status', 'registered');
+    }
+
     protected function casts(): array
     {
         return [

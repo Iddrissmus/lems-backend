@@ -33,7 +33,7 @@ describe('/me', function () {
         $this->actingAs($user, 'sanctum')->getJson('/api/v1/me')
             ->assertOk()
             ->assertJsonPath('data.roles', ['head_of_academics'])
-            ->assertJsonPath('data.permissions', collect(Permission::usersGroup())
+            ->assertJsonPath('data.permissions', collect(Role::HeadOfAcademics->permissions())
                 ->map->value->sort()->values()->all());
     });
 
@@ -46,11 +46,17 @@ describe('/me', function () {
             ->assertJsonPath('data.permissions', Permission::values());
     });
 
-    it('gives a student no permissions', function () {
+    it('gives a student only the permission to register for courses', function () {
         actingAsRole(Role::Student);
 
-        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', []);
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', ['registration:self']);
     });
+
+    it('gives a lecturer and a bursar no permissions yet', function (Role $role) {
+        actingAsRole($role);
+
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.permissions', []);
+    })->with([Role::Lecturer, Role::Bursar]);
 });
 
 describe('roles list', function () {
@@ -69,7 +75,7 @@ describe('roles list', function () {
     });
 });
 
-it('seeds roles idempotently and gives head_of_academics only the user permissions', function () {
+it('seeds roles idempotently and gives each role exactly the permissions Role::permissions() lists', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
     $this->seed(RolesAndPermissionsSeeder::class);
 
@@ -77,15 +83,28 @@ it('seeds roles idempotently and gives head_of_academics only the user permissio
         ->and(Spatie\Permission\Models\Permission::count())->toBe(count(Permission::cases()))
         ->and(User::factory()->create()->hasRole('super_admin'))->toBeFalse();
 
-    $head = Spatie\Permission\Models\Role::findByName('head_of_academics');
-    expect($head->permissions->pluck('name')->sort()->values()->all())
-        ->toBe(collect(Permission::usersGroup())->map->value->sort()->values()->all());
+    foreach (Role::cases() as $role) {
+        $stored = Spatie\Permission\Models\Role::findByName($role->value)->permissions->pluck('name')->sort()->values()->all();
+        $expected = collect($role->permissions())->map->value->sort()->values()->all();
 
-    // ict_admin has the same account-management rights (owner's decision, 2026-11-20).
-    $ict = Spatie\Permission\Models\Role::findByName('ict_admin');
-    expect($ict->permissions->pluck('name')->sort()->values()->all())
-        ->toBe($head->permissions->pluck('name')->sort()->values()->all());
+        expect($stored)->toBe($expected, $role->value);
+    }
+});
 
-    // academic_affairs holds nothing until the results module is built.
-    expect(Spatie\Permission\Models\Role::findByName('academic_affairs')->permissions)->toHaveCount(0);
+it('gives head_of_academics and ict_admin the account-management permissions, plus their own academic ones', function () {
+    $users = collect(Permission::usersGroup())->map->value;
+
+    $head = collect(Role::HeadOfAcademics->permissions())->map->value;
+    $ict = collect(Role::IctAdmin->permissions())->map->value;
+
+    expect($users->diff($head))->toBeEmpty()
+        ->and($users->diff($ict))->toBeEmpty()
+        ->and($head->all())->toContain('students:view', 'registration:manage')->not->toContain('accounts:create')
+        ->and($ict->all())->toContain('accounts:create', 'accounts:reset-password', 'students:view')->not->toContain('registration:manage');
+});
+
+it('keeps lecturer, bursar and others free of academic permissions until their modules exist', function () {
+    expect(Role::Lecturer->permissions())->toBe([])
+        ->and(Role::Bursar->permissions())->toBe([])
+        ->and(collect(Role::AcademicAffairs->permissions())->map->value->all())->toBe(['students:view']);
 });

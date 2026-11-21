@@ -36,6 +36,7 @@ All notable changes to the LEMS SCNMTC backend. Newest first. The API version is
 - `DEMO_PASSWORD` setting (`config/demo.php`, `.env`): the password of every synthetic demo account; the demo seeders apply it, including to accounts that already exist. Default `password`. The real value lives only in `.env`, which git ignores.
 - `docs/demo.md`: the Monday demo guide (checklist for the days before, the settings for a tunnel, the ten-minute script, what to say, what to do when something goes wrong, after the demo).
 - Postman: logins use the environment variable `demo_password`.
+- `scripts/demo-sweep.py`: a read-only check that every demo role can sign in and open its screens, locally or through the tunnel.
 
 ### Changed
 - The demo grade scale now carries sample points (4, 3, 2, 1, 0) so a sample GPA can be shown; the API still never computes one.

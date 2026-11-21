@@ -64,8 +64,14 @@ Start in this order and leave each running:
 3. **The tunnel:** `ngrok http 8000` in terminal 2. It prints an address such as `https://abcd-1234.ngrok-free.app`. The address **changes every time ngrok restarts**.
 4. Put that address in `APP_URL`, restart `php artisan serve`, and open `https://<address>/api/v1/health` from your phone on mobile data. Expect `{"status":"ok",...}`.
 5. **Send the frontend engineer** the base URL (`https://<address>/api/v1`). His server sets it as `LEMS_API_URL` and sends the header `ngrok-skip-browser-warning: 1` while ngrok is in front.
-6. Sign in once in the portal as each role to prove the connection. Do not register, submit or release anything yet.
-7. Keep the laptop plugged in, awake and online (turn off sleep for the day). Close anything that uses the port 8000 or 3306.
+6. Run the sweep: it signs in as every demo role and opens each role's screens through the tunnel, reading only. Expect `23 of 23 checks passed`:
+
+   ```powershell
+   $env:DEMO_PASSWORD = "<your demo password>"
+   python scripts/demo-sweep.py https://<tunnel-address>/api/v1
+   ```
+7. Sign in once in the portal as each role to prove the connection. Do not register, submit or release anything yet.
+8. Keep the laptop plugged in, awake and online (turn off sleep for the day). Close anything that uses the port 8000 or 3306.
 
 Anyone who has the tunnel address can call the API, and every demo account has the same password. That is acceptable only because every record is synthetic. Do not post the address publicly, and stop ngrok as soon as the demo is over.
 
@@ -137,6 +143,7 @@ Sign in as the new student again, open results.
 | 422 `marks_incomplete` | A student has no mark yet | Expected in step 3: it names who is missing |
 | 423 `grade_locked` | The marks are already submitted | Expected in step 3. Not a fault |
 | 409 `already_submitted` or `not_submitted` | The course is in a different state than the screen assumed | Reload the dashboard; follow the order lecturer, head, student |
+| Screens feel slow, about a second per click | The tunnel adds about 1 second to every call (measured on 2026-11-21 from Ghana: about 1 second through ngrok, about 0.1 second locally). It is the network, not the API | Expect it, tell the audience, and click once and wait. The frontend can reduce the number of calls per page. Starting ngrok with `--region eu` may help |
 | 429 | Too many sign-in attempts in a minute | Wait the seconds in the `Retry-After` header |
 | A student cannot be found or the class is the wrong size | A rehearsal left data behind | Stop, then `php artisan migrate:fresh --seed` and start again |
 | The portal itself is broken but the API is fine | Frontend problem | Show the same flow from Postman (folder 10, 11 and 12 by role) |
